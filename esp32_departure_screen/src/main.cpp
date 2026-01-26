@@ -5,6 +5,7 @@
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <time.h>
 
 // Panel Konfiguration
 #define PANEL_RES_X 64      // Breite des Panels
@@ -14,6 +15,7 @@
 MatrixPanel_I2S_DMA *display = nullptr;
 
 // Grundfarben
+uint16_t DEPARTURE_COLOR  = display->color565(255, 165, 0);
 uint16_t BLACK   = display->color565(0, 0, 0);
 uint16_t WHITE   = display->color565(255, 255, 255);
 uint16_t RED     = display->color565(255, 0, 0);
@@ -31,18 +33,31 @@ uint16_t LIGHTGRAY = display->color565(192, 192, 192);
 uint16_t DARKGREEN = display->color565(0, 100, 0);
 uint16_t LIGHTBLUE = display->color565(173, 216, 230);
 
-//Wlan & Config-Website
+//Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
 WebServer server(80);
-String selectedSSID = "";
-String selectedPassword = "";
+String selectedSSID = "MotivNet";
+String selectedPassword = "motivoli5";
 String stop1 = "";
 String line1 = "";
-int maxLines1 = 1;
+int maxColumns1 = 1;
 int minOffset1 = 0;
 String stop2 = "";
 String line2 = "";
-int maxLines2 = 1;
+int maxColumns2 = 1;
 int minOffset2 = 0;
+
+//parsen & Anzeigen
+#define MAX_DEPARTURES 8 //Max departures requested from API
+#define MAX_LINE_LEN   4
+#define MAX_DEST_LEN   16
+String json = "";
+struct Departure {
+  char line[MAX_LINE_LEN];
+  char destination[MAX_DEST_LEN];
+  int minutes;
+  int delay;
+};
+Departure departures[MAX_DEPARTURES];
 
 String generateSetupPage(String wifiOptions) {
   return R"rawliteral(
@@ -58,8 +73,20 @@ String generateSetupPage(String wifiOptions) {
       <h3>1. Haltestelle:</h3>
       Haltestelle: <input type="text" name="stop1"><br>
       Linie: <input type="text" name="line1"><br>
-      Max-Zeilen: <select name="maxLines1">
+      Max-Zeilen: <select name="maxColumns1">
 )rawliteral";
+}
+
+int minutesFromNow(const char* isoTime) {
+  struct tm tm;
+  memset(&tm, 0, sizeof(tm));
+
+  // Format: 2026-01-26T17:19:00+01:00
+  strptime(isoTime, "%Y-%m-%dT%H:%M:%S", &tm);
+  time_t departure = mktime(&tm);
+  time_t now = time(nullptr);
+
+  return (int)difftime(departure, now) / 60;
 }
 
 // Funktion zum Zeichnen von Text
@@ -159,14 +186,6 @@ void loadingTransition(int steps = 70) {
 }
 
 #pragma region WLAN Config Funktionen
-// Funktion zum Einrichten des WLAN Access Points
-
-void setupWiFiAP(const char* ssid, const char* password) {
-  // WLAN im AP-Modus starten
-  WiFi.mode(WIFI_AP_STA);
-  bool result = WiFi.softAP(ssid, password);
-}
-
 
 // Funktion zum Starten des Setup-WLANs
 void startSetupAP() {
@@ -198,23 +217,29 @@ String getWiFiOptions() {
   for(int i = 0; i < n; i++) {
     options += "<option value=\"" + WiFi.SSID(i) + "\">" + WiFi.SSID(i) + "</option>\n";
   }
+  Serial.println("Gefundene Netzwerke: " + String(n));
+  Serial.println("Options: " + String(options));
   return options;
 }
 
 void handleRoot() {
+  Serial.println("handle Root");
+
   String wifiOptions = getWiFiOptions();
   String page = R"rawliteral(
 <html>
   <body>
     <h3>WLAN Auswahl:</h3>
     <form action="/save" method="POST">
-      WLAN: <select name="ssid">)" + wifiOptions + R"rawliteral(</select><br>
+      WLAN: <select name="ssid">)rawliteral";
+  page += wifiOptions;
+  page += R"rawliteral(</select><br>
       Passwort: <input type="password" name="password"><br><br>
 
       <h3>1. Haltestelle:</h3>
       Haltestelle-ID: <input type="text" name="stop1"><br>
       Linie: <input type="text" name="line1"><br>
-      Max-Zeilen: <select name="maxLines1">)rawliteral";
+      Max-Zeilen: <select name="maxColumns1">)rawliteral";
 
   // Dropdown für Max-Zeilen 1-4
   for(int i=1;i<=4;i++) page += "<option value=\"" + String(i) + "\">" + String(i) + "</option>";
@@ -225,7 +250,7 @@ void handleRoot() {
       <h3>2. Haltestelle:</h3>
       Haltestelle-ID: <input type="text" name="stop2"><br>
       Linie: <input type="text" name="line2"><br>
-      Max-Zeilen: <select name="maxLines2">)rawliteral";
+      Max-Zeilen: <select name="maxColumns2">)rawliteral";
 
   for(int i=1;i<=4;i++) page += "<option value=\"" + String(i) + "\">" + String(i) + "</option>";
   page += R"rawliteral(</select><br>Minuten-Offset: <select name="minOffset2">)rawliteral";
@@ -248,12 +273,12 @@ void handleSave() {
 
   stop1 = server.arg("stop1");
   line1 = server.arg("line1");
-  maxLines1 = server.arg("maxLines1").toInt();
+  maxColumns1 = server.arg("maxColumns1").toInt();
   minOffset1 = server.arg("minOffset1").toInt();
 
   stop2 = server.arg("stop2");
   line2 = server.arg("line2");
-  maxLines2 = server.arg("maxLines2").toInt();
+  maxColumns2 = server.arg("maxColumns2").toInt();
   minOffset2 = server.arg("minOffset2").toInt();
 
   server.send(200, "text/html", "<html><body><h3>Setup abgeschlossen! ESP verbindet sich nun...</h3></body></html>");
@@ -301,11 +326,98 @@ void Config() {
   Serial.println("Webserver gestartet!");
 }
 
-
-
 #pragma endregion WLAN Config Funktionen
 
+void getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
+  if(WiFi.status() != WL_CONNECTED) {
+    Serial.println("Nicht mit WLAN verbunden!");
+    json = "{message: \"Wifi error\"}";
+    return;
+  }
+
+  String apiURL = "https://v6.bvg.transport.rest/stops/" + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30";
+  HTTPClient http;
+  http.begin(apiURL);
+  int httpCode = http.GET();
+
+  if(httpCode > 0) {
+    json = http.getString();
+    Serial.println("Successful API request.");
+  } else {
+    Serial.println("Fehler bei der API-Anfrage, HTTP Code: " + String(httpCode));
+  }
+
+  http.end();
+}
+
+int parseDepartures(String json, const char* lineFilter, Departure* result, int maxResults) {
+  DynamicJsonDocument doc(8192);
+  if (deserializeJson(doc, json)) {
+    //return 0;
+  }
+
+  JsonArray departures = doc["departures"].as<JsonArray>();
+  int count = 0;
+
+  Serial.println("departures:" + departures);
+
+  for (JsonObject dep : departures) {
+
+    const char* lineName = dep["line"]["name"];
+    if (lineFilter && strcmp(lineName, lineFilter) != 0) {
+      continue;
+    }
+
+    if (count >= maxResults) break;
+
+    // Linie
+    strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
+    result[count].line[MAX_LINE_LEN - 1] = '\0';
+
+    // Ziel
+    const char* dest = dep["destination"]["name"];
+    strncpy(result[count].destination, dest, MAX_DEST_LEN - 1);
+    result[count].destination[MAX_DEST_LEN - 1] = '\0';
+
+    // Minuten bis Abfahrt
+    result[count].minutes = minutesFromNow(dep["when"]);
+
+    // Verspätung
+    if (dep["delay"].isNull()) {
+      result[count].delay = 0;
+    } else {
+      result[count].delay = dep["delay"].as<int>() / 60;
+    }
+
+    count++;
+  }
+
+  return count;
+}
+
+void updateDepartures() {
+  Serial.println("Aktualisiere Abfahrten...");
+  Serial.println("get Departures...");
+  getDeparturesJson(stop1, line1, maxColumns1);
+  Serial.println("parse Departures...");
+  int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
+  Serial.println("numDepartures: " + numDepartures);
+
+  Serial.println("Update Display...");
+  display->fillScreen(BLACK);
+  int coloums = min(min(numDepartures, maxColumns1), 3);
+  for(int i=0; i<coloums; i++) {
+    String lineInfo = String(departures[i].line) + " " + String(departures[i].destination) + " ";
+    if(departures[i].delay > 0) {
+      lineInfo += "+" + String(departures[i].delay);
+    }
+    lineInfo += String(departures[i].minutes);
+    displayText(lineInfo, i, DEPARTURE_COLOR);
+  }
+}
+
 void setup() {
+  Serial.println("starte setup...");
   HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
 
   display = new MatrixPanel_I2S_DMA(mxconfig);
@@ -314,13 +426,33 @@ void setup() {
 
   Serial.begin(115200);
   
-  Intro();
-  loadingTransition();
-  Config();
+  //Intro();
+  //loadingTransition();
+  if (true) {
+    selectedSSID = "MotivNet";
+    selectedPassword = "motivoli5";
+    stop1 = "900022201";
+    line1 = "U2";
+    maxColumns1 = 4;
+    minOffset1 = 0;
+
+    WiFi.begin(selectedSSID.c_str(), selectedPassword.c_str());
+  }
+  else {
+    Config();
+  }
+  Serial.println("setup fertig.");
 }
 
 
 
 void loop() {
   server.handleClient();
+  delay(10000);
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WLAN nicht verbunden.");
+  }
+  else {
+    updateDepartures();
+  }
 }
