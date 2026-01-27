@@ -48,9 +48,8 @@ int minOffset2 = 0;
 
 //parsen & Anzeigen
 #define MAX_DEPARTURES 8 //Max departures requested from API
-#define MAX_LINE_LEN   4
-#define MAX_DEST_LEN   16
-String json = "";
+#define MAX_LINE_LEN   3
+#define MAX_DEST_LEN   6
 struct Departure {
   char line[MAX_LINE_LEN];
   char destination[MAX_DEST_LEN];
@@ -77,42 +76,77 @@ String generateSetupPage(String wifiOptions) {
 )rawliteral";
 }
 
-int minutesFromNow(const char* isoTime) {
-  struct tm tm;
-  memset(&tm, 0, sizeof(tm));
 
-  // Format: 2026-01-26T17:19:00+01:00
-  strptime(isoTime, "%Y-%m-%dT%H:%M:%S", &tm);
-  time_t departure = mktime(&tm);
-  time_t now = time(nullptr);
+long isoToRelativeMinutes(const String& isoTime) {
+  struct tm tm = {};
 
-  return (int)difftime(departure, now) / 60;
+  // "2026-01-27T18:03:00+01:00" → ohne Zeitzone parsen
+  strptime(isoTime.substring(0, 19).c_str(),
+            "%Y-%m-%dT%H:%M:%S",
+            &tm);
+
+  time_t target = mktime(&tm);
+
+  time_t now;
+  time(&now);
+
+  return (target - now) / 60;
 }
 
-// Funktion zum Zeichnen von Text
-void displayText(String text, int line, uint16_t color) {
+String normalizeUmlauts(String text) {
+  text.replace("ä", "ae");
+  text.replace("ö", "oe");
+  text.replace("ü", "ue");
+  text.replace("Ä", "Ae");
+  text.replace("Ö", "Oe");
+  text.replace("Ü", "Ue");
+  text.replace("ß", "ss");
+  return text;
+}
+
+// Funktion zum Zeichnen von Text mit optionaler horizontaler Ausrichtung
+enum TextAlign {
+  ALIGN_LEFT,
+  ALIGN_CENTER,
+  ALIGN_RIGHT
+};
+void displayText(String text, int line, uint16_t color, TextAlign align = ALIGN_CENTER) {
   int16_t x1, y1;
   uint16_t w, h;
 
-  // Textgröße einstellen, z.B. 1
   display->setTextSize(1);
   display->setTextColor(color);
 
-  // Berechne die Textbox
+  text = normalizeUmlauts(text);
+
+  // Textbox berechnen
   display->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
 
-  int y = 0;
   int x = 0;
+  int y = 0;
 
-  if(line == -1) {
-    // Zentrieren
-    x = (PANEL_RES_X - w) / 2;
+  // Vertikale Position
+  if (line == -1) {
+    // Komplett zentriert
     y = (PANEL_RES_Y - h) / 2;
-  } else if(line >= 0 && line <= 3) {
-    // In einer von 4 Zeilen
+  } else if (line >= 0 && line <= 3) {
     int lineHeight = PANEL_RES_Y / 4;
-    y = line * lineHeight + (lineHeight - h) / 2; // vertikal zentriert in der Zeile
-    x = (PANEL_RES_X - w) / 2; // optional horizontal zentriert
+    y = line * lineHeight + (lineHeight - h) / 2;
+  }
+
+  // Horizontale Ausrichtung
+  switch (align) {
+    case ALIGN_LEFT:
+      x = 0;
+      break;
+
+    case ALIGN_CENTER:
+      x = (PANEL_RES_X - w) / 2;
+      break;
+
+    case ALIGN_RIGHT:
+      x = PANEL_RES_X - w;
+      break;
   }
 
   display->setCursor(x, y);
@@ -328,11 +362,11 @@ void Config() {
 
 #pragma endregion WLAN Config Funktionen
 
-void getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
+String getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
   if(WiFi.status() != WL_CONNECTED) {
     Serial.println("Nicht mit WLAN verbunden!");
-    json = "{message: \"Wifi error\"}";
-    return;
+    String json = "{\"message\":\"Wifi error\"}";
+    return json;
   }
 
   String apiURL = "https://v6.bvg.transport.rest/stops/" + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30";
@@ -340,6 +374,7 @@ void getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
   http.begin(apiURL);
   int httpCode = http.GET();
 
+  String json = "{\"message\":\"API error\"}";
   if(httpCode > 0) {
     json = http.getString();
     Serial.println("Successful API request.");
@@ -348,57 +383,56 @@ void getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
   }
 
   http.end();
+  return json;
 }
 
 int parseDepartures(String json, const char* lineFilter, Departure* result, int maxResults) {
-  DynamicJsonDocument doc(8192);
-  if (deserializeJson(doc, json)) {
-    //return 0;
-  }
+    DynamicJsonDocument doc(16384);  // größerer Speicher
 
-  JsonArray departures = doc["departures"].as<JsonArray>();
-  int count = 0;
-
-  Serial.println("departures:" + departures);
-
-  for (JsonObject dep : departures) {
-
-    const char* lineName = dep["line"]["name"];
-    if (lineFilter && strcmp(lineName, lineFilter) != 0) {
-      continue;
+    DeserializationError err = deserializeJson(doc, json);
+    if (err) {
+        Serial.print("JSON Fehler: ");
+        Serial.println(err.c_str());
+        return 0;
     }
 
-    if (count >= maxResults) break;
+    JsonArray departures = doc["departures"].as<JsonArray>();
+    if (departures.isNull()) return 0;
 
-    // Linie
-    strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
-    result[count].line[MAX_LINE_LEN - 1] = '\0';
+    Serial.println("departures:");
+    serializeJson(departures, Serial);
+    Serial.println();
 
-    // Ziel
-    const char* dest = dep["destination"]["name"];
-    strncpy(result[count].destination, dest, MAX_DEST_LEN - 1);
-    result[count].destination[MAX_DEST_LEN - 1] = '\0';
+    int count = 0;
+    for (JsonObject dep : departures) {
+        const char* lineName = dep["line"]["name"] | "?";
+        const char* dest     = dep["destination"]["name"] | "?";
+        const char* when     = dep["when"] | "?";
 
-    // Minuten bis Abfahrt
-    result[count].minutes = minutesFromNow(dep["when"]);
+        if (!lineName[0] || !dest[0] || !when[0]) continue;
 
-    // Verspätung
-    if (dep["delay"].isNull()) {
-      result[count].delay = 0;
-    } else {
-      result[count].delay = dep["delay"].as<int>() / 60;
+        if (lineFilter && strcmp(lineName, lineFilter) != 0) continue;
+        if (count >= maxResults) break;
+
+        strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
+        result[count].line[MAX_LINE_LEN - 1] = '\0';
+
+        strncpy(result[count].destination, dest, MAX_DEST_LEN - 1);
+        result[count].destination[MAX_DEST_LEN - 1] = '\0';
+
+        result[count].minutes = isoToRelativeMinutes(when);
+        result[count].delay = dep["delay"].isNull() ? 0 : dep["delay"].as<int>() / 60;
+
+        count++;
     }
 
-    count++;
-  }
-
-  return count;
+    return count;
 }
 
 void updateDepartures() {
   Serial.println("Aktualisiere Abfahrten...");
   Serial.println("get Departures...");
-  getDeparturesJson(stop1, line1, maxColumns1);
+  String json = getDeparturesJson(stop1, line1, maxColumns1);
   Serial.println("parse Departures...");
   int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
   Serial.println("numDepartures: " + numDepartures);
@@ -406,33 +440,32 @@ void updateDepartures() {
   Serial.println("Update Display...");
   display->fillScreen(BLACK);
   int coloums = min(min(numDepartures, maxColumns1), 3);
+
   for(int i=0; i<coloums; i++) {
-    String lineInfo = String(departures[i].line) + " " + String(departures[i].destination) + " ";
-    if(departures[i].delay > 0) {
-      lineInfo += "+" + String(departures[i].delay);
-    }
-    lineInfo += String(departures[i].minutes);
-    displayText(lineInfo, i, DEPARTURE_COLOR);
+    String lineInfo = String(departures[i].line) + " " + String(departures[i].destination);
+    Serial.println("Display line " + String(i) + ": " + lineInfo);
+    displayText(lineInfo, i, DEPARTURE_COLOR, ALIGN_LEFT);
+    displayText(String(departures[i].minutes + departures[i].delay), i, DEPARTURE_COLOR, ALIGN_RIGHT);
   }
 }
 
 void setup() {
+  Serial.begin(115200);
   Serial.println("starte setup...");
+
   HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
 
   display = new MatrixPanel_I2S_DMA(mxconfig);
   display->begin();
   display->setBrightness8(100);
-
-  Serial.begin(115200);
   
   //Intro();
-  //loadingTransition();
+  loadingTransition();
   if (true) {
     selectedSSID = "MotivNet";
     selectedPassword = "motivoli5";
-    stop1 = "900022201";
-    line1 = "U2";
+    stop1 = "900024208";
+    line1 = "101";
     maxColumns1 = 4;
     minOffset1 = 0;
 
@@ -442,17 +475,35 @@ void setup() {
     Config();
   }
   Serial.println("setup fertig.");
+
+  //wait for wifi connection
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print("No wifi connection yet...");
+  }
+  Serial.println("WiFi connected.");
+  
+  // Set systemtime and timezone to CET/CEST
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  time_t now;
+  while (time(&now) < 100000) {
+    delay(100);
+  }
+  setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+  tzset();
+
+  // loop
+  while (true) {
+
+    server.handleClient();
+    updateDepartures();
+    delay(10000);
+  }
 }
 
 
 
 void loop() {
-  server.handleClient();
-  delay(10000);
-  if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WLAN nicht verbunden.");
-  }
-  else {
-    updateDepartures();
-  }
+
 }
