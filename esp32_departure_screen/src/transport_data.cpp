@@ -99,9 +99,9 @@ void updateDepartures() {
 
   Serial.println("Update Display...");
   display->fillScreen(BLACK); 
-  int coloums = min(min(numDepartures, maxColumns1), 3);
+  int coloums = min(min(numDepartures, maxColumns1), 2);
 
-  for(int i=0; i<coloums; i++) {
+  for(int i=2; i<coloums+1; i++) {
     String lineInfo = String(departures[i].line) + "" + String(departures[i].destination);
     Serial.println("Display line " + String(i) + ": " + lineInfo);
     displayText(lineInfo, i, DEPARTURE_COLOR, ALIGN_LEFT);

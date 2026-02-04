@@ -1,25 +1,21 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <Adafruit_GFX.h>
 #include <Arduino.h>
-#include <time.h>
+#include "time.h"
 #include "transport_data.h"
 #include "display.h"
 #include "wifi_setup.h"
 
-//Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
+//Wlan & Config-Website --> Find stop id: https://v6.vbb.transport.rest/stops?query=Leibnizstr./B
+
+ScrollingText line1text("U2 → Hauptbahnhof", 0, 64, ROW_2, YELLOW, 1, 25, 8);
+ScrollingText line2text("Nächster Zug in 5 min", 0, 64, ROW_3, CYAN, 1, 30, 8);
 
 void setup() {
   Serial.begin(115200);
   Serial.println("starte setup...");
-
-  HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
-
-  display = new MatrixPanel_I2S_DMA(mxconfig);
-  display->begin();
-  display->setBrightness8(100);
   initDisplay();
 
-  //Intro();
   loadingTransition(70);
   if (true) {
     stop1 = "900024208";
@@ -51,8 +47,11 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
+  drawStaticText("TestText", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
+  delay(10000);
+
   // loop
-  while (true) {
+  while (false) {
 
     server.handleClient();
     updateDepartures();
@@ -60,8 +59,7 @@ void setup() {
   }
 }
 
-
-
 void loop() {
-
+  line1text.update();
+  line2text.update();
 }

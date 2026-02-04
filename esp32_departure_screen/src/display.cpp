@@ -21,6 +21,11 @@ uint16_t LIGHTBLUE;
 MatrixPanel_I2S_DMA *display = nullptr;
 
 void initDisplay() {
+  HUB75_I2S_CFG mxconfig(PANEL_RES_X, PANEL_RES_Y, PANEL_CHAIN);
+
+  display = new MatrixPanel_I2S_DMA(mxconfig);
+  display->begin();
+  display->setBrightness8(100);
 
   DEPARTURE_COLOR  = display->color565(255, 165, 0);
   BLACK   = display->color565(0, 0, 0);
@@ -40,30 +45,6 @@ void initDisplay() {
   DARKGREEN = display->color565(0, 100, 0);
   LIGHTBLUE = display->color565(173, 216, 230);
 }
-
-void Intro() {
-  const char* greetings[] = { "Hallo!", "Hello!", "Bonjour!","Shalom!","Salam!","Hej!","Hei!","Ciao!","hola!","MOIN!"
-  };
-  for (int i = 0; i < sizeof(greetings) / sizeof(greetings[0]); i++) {
-    display->fillScreen(BLACK);
-    displayText(greetings[i], -1, WHITE);
-    delay(600);
-  }
-  delay(1000);
-  displayText("MOIN!", -1, RED);
-  delay(1000);
-  display->fillScreen(BLACK);
-  delay(500);
-  displayText("Digitale", 0, RED);
-  delay(500);
-  displayText("Abfahrts-", 1, GREEN);
-  delay(500);
-  displayText("Anzeige", 2, BLUE);
-  delay(500);
-  displayText("by Chrissi", 3, YELLOW);
-  delay(4000);
-}
-
 
 String normalizeUmlauts(String text) {
   text.replace("ä", "ae");
@@ -121,6 +102,55 @@ void displayText(String text, int line, uint16_t color, TextAlign align) {
 }
 
 
+int getYFromVerticalPos(VerticalPos pos) {
+  const int rowHeight = 8; // Standard 6x8 Font
+  switch (pos) {
+    case ROW_1: return 0;
+    case ROW_2: return rowHeight;
+    case ROW_3: return rowHeight * 2;
+    case ROW_4: return rowHeight * 3;
+    case CENTER: return (PANEL_RES_Y / 2) - (rowHeight / 2);
+    case CENTER_ABOVE: return (PANEL_RES_Y / 2) - rowHeight;
+    case CENTER_BELOW: return (PANEL_RES_Y / 2);
+  }
+  return 0;
+}
+
+int getTextWidth(const String &text, uint8_t textSize) {
+  int16_t x1, y1;
+  uint16_t w, h;
+  display->setTextSize(textSize);
+  display->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
+  return w;
+}
+
+void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, TextAlign align, uint16_t color, uint8_t textSize) {
+  display->setTextSize(textSize);
+  display->setTextColor(color);
+
+  String normalizedText = normalizeUmlauts(text);
+
+  int y = getYFromVerticalPos(vPos);
+  int textWidth = getTextWidth(normalizedText, textSize);
+
+  int x;
+  switch (align) {
+    case ALIGN_LEFT:
+      x = xStart;
+      break;
+    case ALIGN_CENTER:
+      x = xStart + ((xEnd - xStart - textWidth) / 2);
+      break;
+    case ALIGN_RIGHT:
+      x = xEnd - textWidth;
+      break;
+  }
+
+  display->setCursor(x, y);
+  display->print(normalizedText);
+}
+
+
 void loadingTransition(int steps, int delayTime) {
   // Schritt 1: Zufällige bunte Rechtecke
   for (int i = 0; i < steps; i++) {
@@ -160,4 +190,74 @@ void loadingTransition(int steps, int delayTime) {
     display->fillRect(x, y, w, h, BLACK);
     delay(15); // Geschwindigkeit des "Schwarzes Rechteck wächst" Effekts
   }
+}
+
+
+// Konstruktor
+ScrollingText::ScrollingText(
+    const String &t,
+    int xs, int xe,
+    VerticalPos vp,
+    uint16_t c,
+    uint8_t ts,
+    uint8_t sp,
+    int gap
+) {
+    text = t;
+    xStart = xs;
+    xEnd = xe;
+    vPos = vp;
+    color = c;
+    textSize = ts;
+    speedMs = sp;
+    minGap = gap;
+
+    offset = 0;
+    lastUpdate = millis();
+
+    prepareText();
+}
+
+// Text vorbereiten: Leerzeichen anhängen falls nötig
+void ScrollingText::prepareText() {
+    int textWidth = getTextWidth(text, textSize);
+    int areaWidth = xEnd - xStart;
+
+    if (textWidth < areaWidth) {
+        int spaceWidth = getTextWidth(" ", textSize);
+        int spacesToAdd = ((areaWidth + minGap - textWidth) / spaceWidth) + 1;
+        for (int i = 0; i < spacesToAdd; i++) text += " ";
+        textWidth = getTextWidth(text, textSize);
+    }
+
+    loopWidth = textWidth + minGap;
+}
+
+// Update-Methode, in loop() aufrufen
+void ScrollingText::update() {
+    unsigned long now = millis();
+    if (now - lastUpdate < speedMs) return;
+    lastUpdate = now;
+
+    offset += 1;
+    if (offset >= loopWidth) offset -= loopWidth;
+
+    int y = getYFromVerticalPos(vPos);
+    int areaWidth = xEnd - xStart;
+
+    // Bereich löschen
+    display->fillRect(xStart, y, areaWidth, 8 * textSize, BLACK);
+
+    display->setTextSize(textSize);
+    display->setTextColor(color);
+
+    // Erste Instanz
+    int x1 = xEnd - offset;
+    display->setCursor(x1, y);
+    display->print(text);
+
+    // Zweite Instanz direkt dahinter für nahtlosen Übergang
+    int x2 = x1 + loopWidth;
+    display->setCursor(x2, y);
+    display->print(text);
 }
