@@ -101,6 +101,18 @@ void displayText(String text, int line, uint16_t color, TextAlign align) {
   display->print(text);
 }
 
+VerticalPos getVerticalPosForRow(int row) {
+  switch (row) {
+    case -1: return CENTER_ABOVE;
+    case -2: return CENTER;
+    case -3: return CENTER_BELOW;
+    case 0: return ROW_1;
+    case 1: return ROW_2;
+    case 2: return ROW_3;
+    case 3: return ROW_4;
+    default: return ROW_1; // Fallback
+  }
+}
 
 int getYFromVerticalPos(VerticalPos pos) {
   const int rowHeight = 8; // Standard 6x8 Font
@@ -117,11 +129,23 @@ int getYFromVerticalPos(VerticalPos pos) {
 }
 
 int getTextWidth(const String &text, uint8_t textSize) {
-  int16_t x1, y1;
-  uint16_t w, h;
-  display->setTextSize(textSize);
-  display->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
-  return w;
+    if (!display) return 0;
+
+    display->setTextSize(textSize);
+    display->setTextWrap(false);
+
+    int16_t x = 0;
+    int16_t y = 0;
+    int16_t x1, y1;
+    uint16_t w, h;
+
+    for (uint16_t i = 0; i < text.length(); i++) {
+        char c = text[i];
+        display->getTextBounds(String(c), x, y, &x1, &y1, &w, &h);
+        x += w;  // Cursor-Advance simulieren
+    }
+
+    return x;
 }
 
 void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, TextAlign align, uint16_t color, uint8_t textSize) {
@@ -203,7 +227,7 @@ ScrollingText::ScrollingText(
     uint8_t sp,
     int gap
 ) {
-    text = t;
+    text = normalizeUmlauts(t);
     xStart = xs;
     xEnd = xe;
     vPos = vp;
@@ -211,6 +235,7 @@ ScrollingText::ScrollingText(
     textSize = ts;
     speedMs = sp;
     minGap = gap;
+    textWidth = getTextWidth(normalizeUmlauts(text), textSize);
 
     offset = 0;
     lastUpdate = millis();
@@ -220,13 +245,22 @@ ScrollingText::ScrollingText(
 
 // Text vorbereiten: Leerzeichen anhängen falls nötig
 void ScrollingText::prepareText() {
-    int textWidth = getTextWidth(text, textSize);
-    int areaWidth = xEnd - xStart;
+    if (!display) return;
 
-    if (textWidth < areaWidth) {
+    int areaWidth = xEnd - xStart;
+    textWidth = getTextWidth(text, textSize);
+
+    if (textWidth <= areaWidth) {
         int spaceWidth = getTextWidth(" ", textSize);
-        int spacesToAdd = ((areaWidth + minGap - textWidth) / spaceWidth) + 1;
-        for (int i = 0; i < spacesToAdd; i++) text += " ";
+        int requiredWidth = areaWidth + minGap;
+
+        int spacesToAdd =
+            ((requiredWidth - textWidth) / spaceWidth) + 1;
+
+        for (int i = 0; i < spacesToAdd; i++) {
+            text += ' ';
+        }
+
         textWidth = getTextWidth(text, textSize);
     }
 
@@ -235,29 +269,34 @@ void ScrollingText::prepareText() {
 
 // Update-Methode, in loop() aufrufen
 void ScrollingText::update() {
+    if (!display) return;
+
     unsigned long now = millis();
     if (now - lastUpdate < speedMs) return;
     lastUpdate = now;
 
-    offset += 1;
-    if (offset >= loopWidth) offset -= loopWidth;
+    offset++;
+    if (offset >= loopWidth) offset = 0;
 
     int y = getYFromVerticalPos(vPos);
     int areaWidth = xEnd - xStart;
+    int fontHeight = 8 * textSize;
 
-    // Bereich löschen
-    display->fillRect(xStart, y, areaWidth, 8 * textSize, BLACK);
+    display->fillRect(xStart, y, areaWidth, fontHeight + 1, BLACK);
 
     display->setTextSize(textSize);
     display->setTextColor(color);
+    display->setTextWrap(false);
 
     // Erste Instanz
-    int x1 = xEnd - offset;
+    int x1 = xStart - offset;
     display->setCursor(x1, y);
     display->print(text);
 
-    // Zweite Instanz direkt dahinter für nahtlosen Übergang
-    int x2 = x1 + loopWidth;
-    display->setCursor(x2, y);
-    display->print(text);
+    // Zweite Instanz NUR wenn das Textende sichtbar wird
+    if (x1 + textWidth < areaWidth) {
+        int x2 = x1 + loopWidth;
+        display->setCursor(x2, y);
+        display->print(text);
+    }
 }

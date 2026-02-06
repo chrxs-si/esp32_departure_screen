@@ -8,8 +8,8 @@
 
 //Wlan & Config-Website --> Find stop id: https://v6.vbb.transport.rest/stops?query=Leibnizstr./B
 
-ScrollingText line1text("U2 → Hauptbahnhof", 0, 64, ROW_2, YELLOW, 1, 25, 8);
-ScrollingText line2text("Nächster Zug in 5 min", 0, 64, ROW_3, CYAN, 1, 30, 8);
+ScrollingText *line1text;
+ScrollingText *line2text;
 
 void setup() {
   Serial.begin(115200);
@@ -47,11 +47,8 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  drawStaticText("TestText", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
-  delay(10000);
-
   // loop
-  while (false) {
+  while (true) {
 
     server.handleClient();
     updateDepartures();
@@ -60,6 +57,5 @@ void setup() {
 }
 
 void loop() {
-  line1text.update();
-  line2text.update();
+
 }

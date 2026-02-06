@@ -45,6 +45,8 @@ enum VerticalPos {
 
 void initDisplay();
 
+VerticalPos getVerticalPosForRow(int row);
+
 void displayText(String text, int line, uint16_t color, TextAlign align = ALIGN_CENTER);
 
 void drawStaticText(const String &text, int xStart = 0, int xEnd = PANEL_RES_X, VerticalPos vPos = ROW_1, TextAlign align = ALIGN_LEFT, uint16_t color = WHITE, uint8_t textSize = 1);
@@ -76,6 +78,7 @@ private:
     uint8_t textSize;
     uint8_t speedMs;
     int minGap;
+    int textWidth;
 
     float offset;
     unsigned long lastUpdate;

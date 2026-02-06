@@ -104,7 +104,8 @@ void updateDepartures() {
   for(int i=2; i<coloums+1; i++) {
     String lineInfo = String(departures[i].line) + "" + String(departures[i].destination);
     Serial.println("Display line " + String(i) + ": " + lineInfo);
-    displayText(lineInfo, i, DEPARTURE_COLOR, ALIGN_LEFT);
-    displayText(String(departures[i].minutes), i, DEPARTURE_COLOR, ALIGN_RIGHT);
+
+    drawStaticText(lineInfo, 0, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+    drawStaticText(String(departures[i].minutes), 0, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
   }
 }
