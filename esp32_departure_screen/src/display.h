@@ -57,17 +57,18 @@ class ScrollingText {
 public:
     // Konstruktor
     ScrollingText(
-        const String &t,
-        int xs, int xe,
-        VerticalPos vp = ROW_1,
-        uint16_t c = WHITE,
-        uint8_t ts = 1,
-        uint8_t sp = 30,
-        int gap = 8
+        const String &scrollText,
+        int xStartPos,
+        int xEndPos,
+        VerticalPos verticalPos = ROW_1,
+        uint16_t textColor = WHITE,
+        uint8_t textSize = 1,
+        uint8_t scrollSpeedMs = 30,
+        int minGapPixels = 8
     );
 
-    // Muss regelmäßig im loop() aufgerufen werden
-    void update();
+    // Startet den Text asynchron in einem Task
+    void start();
 
 private:
     String text;
@@ -81,9 +82,11 @@ private:
     int textWidth;
 
     float offset;
-    unsigned long lastUpdate;
     float loopWidth;
 
-    // interne Funktion zur Vorbereitung des Textes (Leerzeichen hinzufügen)
+    // interne Funktion zur Vorbereitung des Textes
     void prepareText();
+
+    // FreeRTOS Task-Funktion
+    static void scrollTask(void *param);
 };

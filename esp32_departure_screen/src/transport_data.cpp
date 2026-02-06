@@ -75,10 +75,7 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
-        result[count].line[MAX_LINE_LEN - 1] = '\0';
-
         strncpy(result[count].destination, dest, MAX_DEST_LEN - 1);
-        result[count].destination[MAX_DEST_LEN - 1] = '\0';
 
         result[count].minutes = isoToRelativeMinutes(when);
         result[count].delay = dep["delay"].isNull() ? 0 : dep["delay"].as<int>() / 60;
@@ -87,6 +84,11 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
     }
 
     return count;
+}
+
+String cutString(const String& str, int maxLength) {
+  if (str.length() <= maxLength) return str;
+  return str.substring(0, maxLength);
 }
 
 void updateDepartures() {
@@ -101,11 +103,10 @@ void updateDepartures() {
   display->fillScreen(BLACK); 
   int coloums = min(min(numDepartures, maxColumns1), 2);
 
-  for(int i=2; i<coloums+1; i++) {
-    String lineInfo = String(departures[i].line) + "" + String(departures[i].destination);
-    Serial.println("Display line " + String(i) + ": " + lineInfo);
+  for(int i=0; i<coloums; i++) {
+    String dest = cutString(String(departures[i].destination), MAX_DEST_LEN);
 
-    drawStaticText(lineInfo, 0, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
-    drawStaticText(String(departures[i].minutes), 0, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+    drawStaticText(dest, 0, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+    drawStaticText(String(departures[i].minutes), 0, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
   }
 }

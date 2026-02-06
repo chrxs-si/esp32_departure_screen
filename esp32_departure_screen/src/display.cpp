@@ -57,50 +57,6 @@ String normalizeUmlauts(String text) {
   return text;
 }
 
-// Funktion zum Zeichnen von Text mit optionaler horizontaler Ausrichtung
-void displayText(String text, int line, uint16_t color, TextAlign align) {
-  int16_t x1, y1;
-  uint16_t w, h;
-
-  display->setTextSize(1);
-  display->setTextColor(color);
-
-  text = normalizeUmlauts(text);
-
-  // Textbox berechnen
-  display->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
-
-  int x = 0;
-  int y = 0;
-
-  // Vertikale Position
-  if (line == -1) {
-    // Komplett zentriert
-    y = (PANEL_RES_Y - h) / 2;
-  } else if (line >= 0 && line <= 3) {
-    int lineHeight = PANEL_RES_Y / 4;
-    y = line * lineHeight + (lineHeight - h) / 2;
-  }
-
-  // Horizontale Ausrichtung
-  switch (align) {
-    case ALIGN_LEFT:
-      x = 0;
-      break;
-
-    case ALIGN_CENTER:
-      x = (PANEL_RES_X - w) / 2;
-      break;
-
-    case ALIGN_RIGHT:
-      x = PANEL_RES_X - w;
-      break;
-  }
-
-  display->setCursor(x, y);
-  display->print(text);
-}
-
 VerticalPos getVerticalPosForRow(int row) {
   switch (row) {
     case -1: return CENTER_ABOVE;
@@ -149,6 +105,8 @@ int getTextWidth(const String &text, uint8_t textSize) {
 }
 
 void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, TextAlign align, uint16_t color, uint8_t textSize) {
+  if (!display) return;
+
   display->setTextSize(textSize);
   display->setTextColor(color);
 
@@ -172,6 +130,106 @@ void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, 
 
   display->setCursor(x, y);
   display->print(normalizedText);
+}
+
+
+// Konstruktor
+ScrollingText::ScrollingText(
+    const String &scrollText,
+    int xStartPos,
+    int xEndPos,
+    VerticalPos verticalPos,
+    uint16_t textColor,
+    uint8_t textSize,
+    uint8_t scrollSpeedMs,
+    int minGapPixels
+) {
+    text = normalizeUmlauts(scrollText);
+    xStart = xStartPos;
+    xEnd = xEndPos;
+    vPos = verticalPos;
+    color = textColor;
+    this->textSize = textSize;
+    speedMs = scrollSpeedMs;
+    minGap = minGapPixels;
+
+    offset = 0;
+    prepareText();
+}
+
+// Text vorbereiten: Leerzeichen anhängen falls nötig
+void ScrollingText::prepareText() {
+    if (!display) return;
+
+    int areaWidth = xEnd - xStart;
+    textWidth = getTextWidth(text, textSize);
+
+    if (textWidth <= areaWidth) {
+        int spaceWidth = getTextWidth(" ", textSize);
+        int requiredWidth = areaWidth + minGap;
+
+        int spacesToAdd = ((requiredWidth - textWidth) / spaceWidth) + 1;
+        for (int i = 0; i < spacesToAdd; i++) {
+            text += ' ';
+        }
+
+        textWidth = getTextWidth(text, textSize);
+    }
+
+    loopWidth = textWidth + minGap;
+}
+
+// Startet den Scrolltext asynchron
+void ScrollingText::start() {
+    // Task erzeugen
+    xTaskCreate(
+        scrollTask,           // Task-Funktion
+        "ScrollTask",         // Name
+        2048,                 // Stackgröße (angepasst je nach Textgröße)
+        this,                 // Parameter (this pointer)
+        1,                    // Priorität
+        nullptr               // Task handle
+    );
+}
+
+// FreeRTOS Task-Funktion
+void ScrollingText::scrollTask(void *param) {
+    ScrollingText *self = static_cast<ScrollingText*>(param);
+
+    int areaWidth = self->xEnd - self->xStart;
+    int fontHeight = 8 * self->textSize;
+
+    while (true) {
+        if (!display) { vTaskDelay(10 / portTICK_PERIOD_MS); continue; }
+
+        // Bereich löschen
+        display->fillRect(self->xStart, getYFromVerticalPos(self->vPos),
+                          areaWidth, fontHeight + 1, BLACK);
+
+        // Text zeichnen
+        display->setTextSize(self->textSize);
+        display->setTextColor(self->color);
+        display->setTextWrap(false);
+
+        int x1 = self->xStart - self->offset;
+        int y = getYFromVerticalPos(self->vPos);
+        display->setCursor(x1, y);
+        display->print(self->text);
+
+        // Zweite Instanz für nahtlosen Übergang
+        if (x1 + self->textWidth < areaWidth) {
+            int x2 = x1 + self->loopWidth;
+            display->setCursor(x2, y);
+            display->print(self->text);
+        }
+
+        // Offset erhöhen
+        self->offset += 1;
+        if (self->offset >= self->loopWidth) self->offset -= self->loopWidth;
+
+        // Geschwindigkeit über vTaskDelay steuern
+        vTaskDelay(self->speedMs / portTICK_PERIOD_MS);
+    }
 }
 
 
@@ -214,89 +272,4 @@ void loadingTransition(int steps, int delayTime) {
     display->fillRect(x, y, w, h, BLACK);
     delay(15); // Geschwindigkeit des "Schwarzes Rechteck wächst" Effekts
   }
-}
-
-
-// Konstruktor
-ScrollingText::ScrollingText(
-    const String &t,
-    int xs, int xe,
-    VerticalPos vp,
-    uint16_t c,
-    uint8_t ts,
-    uint8_t sp,
-    int gap
-) {
-    text = normalizeUmlauts(t);
-    xStart = xs;
-    xEnd = xe;
-    vPos = vp;
-    color = c;
-    textSize = ts;
-    speedMs = sp;
-    minGap = gap;
-    textWidth = getTextWidth(normalizeUmlauts(text), textSize);
-
-    offset = 0;
-    lastUpdate = millis();
-
-    prepareText();
-}
-
-// Text vorbereiten: Leerzeichen anhängen falls nötig
-void ScrollingText::prepareText() {
-    if (!display) return;
-
-    int areaWidth = xEnd - xStart;
-    textWidth = getTextWidth(text, textSize);
-
-    if (textWidth <= areaWidth) {
-        int spaceWidth = getTextWidth(" ", textSize);
-        int requiredWidth = areaWidth + minGap;
-
-        int spacesToAdd =
-            ((requiredWidth - textWidth) / spaceWidth) + 1;
-
-        for (int i = 0; i < spacesToAdd; i++) {
-            text += ' ';
-        }
-
-        textWidth = getTextWidth(text, textSize);
-    }
-
-    loopWidth = textWidth + minGap;
-}
-
-// Update-Methode, in loop() aufrufen
-void ScrollingText::update() {
-    if (!display) return;
-
-    unsigned long now = millis();
-    if (now - lastUpdate < speedMs) return;
-    lastUpdate = now;
-
-    offset++;
-    if (offset >= loopWidth) offset = 0;
-
-    int y = getYFromVerticalPos(vPos);
-    int areaWidth = xEnd - xStart;
-    int fontHeight = 8 * textSize;
-
-    display->fillRect(xStart, y, areaWidth, fontHeight + 1, BLACK);
-
-    display->setTextSize(textSize);
-    display->setTextColor(color);
-    display->setTextWrap(false);
-
-    // Erste Instanz
-    int x1 = xStart - offset;
-    display->setCursor(x1, y);
-    display->print(text);
-
-    // Zweite Instanz NUR wenn das Textende sichtbar wird
-    if (x1 + textWidth < areaWidth) {
-        int x2 = x1 + loopWidth;
-        display->setCursor(x2, y);
-        display->print(text);
-    }
 }

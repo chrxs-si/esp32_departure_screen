@@ -4,6 +4,7 @@
 #include "time.h"
 #include "transport_data.h"
 #include "display.h"
+#include "weather_icons.h"
 #include "wifi_setup.h"
 
 //Wlan & Config-Website --> Find stop id: https://v6.vbb.transport.rest/stops?query=Leibnizstr./B
@@ -47,15 +48,23 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  // loop
-  while (true) {
+  drawStaticText("Freitag", 0, PANEL_RES_X-15, ROW_1, ALIGN_LEFT, BLUE, 1);
+  
+  startRainCloudTask();
 
-    server.handleClient();
-    updateDepartures();
-    delay(10000);
-  }
+  line1text = new ScrollingText("Kai! Es ist 15 Uhr! ---", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
+  line1text->start();
+
 }
 
-void loop() {
+int lastUpdate = millis();
+int speedMs = 30000;
 
+void loop() {
+    unsigned long now = millis();
+    if (now - lastUpdate > speedMs) {
+      server.handleClient();
+      updateDepartures();
+      lastUpdate = now;
+    }
 }
