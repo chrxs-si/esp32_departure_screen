@@ -21,7 +21,7 @@ void setup() {
   loadingTransition(70);
   if (true) {
     stop1 = "900022201";
-    line1 = "U2";
+    line1 = "2";
     maxColumns1 = 4;
     minOffset1 = 0;
 
