@@ -157,7 +157,7 @@ ScrollingText::ScrollingText(
     prepareText();
 }
 
-// Text vorbereiten: Leerzeichen anhängen falls nötig
+// Text vorbereiten
 void ScrollingText::prepareText() {
     if (!display) return;
 
@@ -181,15 +181,24 @@ void ScrollingText::prepareText() {
 
 // Startet den Scrolltext asynchron
 void ScrollingText::start() {
-    // Task erzeugen
+    if (taskHandle != nullptr) return; // Task läuft bereits
+
     xTaskCreate(
-        scrollTask,           // Task-Funktion
-        "ScrollTask",         // Name
-        2048,                 // Stackgröße (angepasst je nach Textgröße)
-        this,                 // Parameter (this pointer)
-        1,                    // Priorität
-        nullptr               // Task handle
+        scrollTask,
+        "ScrollTask",
+        2048,
+        this,
+        1,
+        &taskHandle
     );
+}
+
+// Stoppt den laufenden Task
+void ScrollingText::stop() {
+    if (taskHandle != nullptr) {
+        vTaskDelete(taskHandle);
+        taskHandle = nullptr;
+    }
 }
 
 // FreeRTOS Task-Funktion
@@ -202,11 +211,9 @@ void ScrollingText::scrollTask(void *param) {
     while (true) {
         if (!display) { vTaskDelay(10 / portTICK_PERIOD_MS); continue; }
 
-        // Bereich löschen
         display->fillRect(self->xStart, getYFromVerticalPos(self->vPos),
                           areaWidth, fontHeight + 1, BLACK);
 
-        // Text zeichnen
         display->setTextSize(self->textSize);
         display->setTextColor(self->color);
         display->setTextWrap(false);
@@ -216,18 +223,15 @@ void ScrollingText::scrollTask(void *param) {
         display->setCursor(x1, y);
         display->print(self->text);
 
-        // Zweite Instanz für nahtlosen Übergang
         if (x1 + self->textWidth < areaWidth) {
             int x2 = x1 + self->loopWidth;
             display->setCursor(x2, y);
             display->print(self->text);
         }
 
-        // Offset erhöhen
         self->offset += 1;
         if (self->offset >= self->loopWidth) self->offset -= self->loopWidth;
 
-        // Geschwindigkeit über vTaskDelay steuern
         vTaskDelay(self->speedMs / portTICK_PERIOD_MS);
     }
 }

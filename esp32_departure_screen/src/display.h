@@ -67,8 +67,11 @@ public:
         int minGapPixels = 8
     );
 
-    // Startet den Text asynchron in einem Task
+    // Startet den Text asynchron
     void start();
+
+    // Stoppt den laufenden Scrolltext
+    void stop();
 
 private:
     String text;
@@ -84,9 +87,8 @@ private:
     float offset;
     float loopWidth;
 
-    // interne Funktion zur Vorbereitung des Textes
-    void prepareText();
+    TaskHandle_t taskHandle = nullptr; // Task-Handle speichern
 
-    // FreeRTOS Task-Funktion
+    void prepareText();
     static void scrollTask(void *param);
 };

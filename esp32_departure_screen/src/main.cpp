@@ -52,9 +52,12 @@ void setup() {
   
   startRainCloudTask();
 
-  line1text = new ScrollingText("Kai! Es ist 15 Uhr! ---", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
+  line1text = new ScrollingText("Kai! Es ist 15 Uhr!!! ---", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 160, 8);
   line1text->start();
 
+  delay(10000);
+
+  line1text->stop();
 }
 
 int lastUpdate = millis();
