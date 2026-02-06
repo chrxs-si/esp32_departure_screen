@@ -6,8 +6,9 @@
 #include "display.h"
 #include "weather_icons.h"
 #include "wifi_setup.h"
+#include "weather_data.h"
 
-//Wlan & Config-Website --> Find stop id: https://v6.vbb.transport.rest/stops?query=Leibnizstr./B
+//Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
 
 ScrollingText *line1text;
 ScrollingText *line2text;
@@ -19,8 +20,8 @@ void setup() {
 
   loadingTransition(70);
   if (true) {
-    stop1 = "900024208";
-    line1 = "101";
+    stop1 = "900022201";
+    line1 = "U2";
     maxColumns1 = 4;
     minOffset1 = 0;
 
@@ -48,12 +49,14 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  drawStaticText("   Montag", 0, PANEL_RES_X-15, ROW_1, ALIGN_LEFT, BLUE, 1);
-  
   startRainCloudTask();
 
   line1text = new ScrollingText("Hallo Christoph! Schau wie schlau ich bin! Du hottie Karottie!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
+
+  String weatherJson = fetchWeatherJson(52.5170365, 13.3888599);
+  WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
+  drawStaticText(String(data.temperature_2m) + String("C"), 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, LIGHTBLUE, 1);
 }
 
 int lastUpdate = millis();

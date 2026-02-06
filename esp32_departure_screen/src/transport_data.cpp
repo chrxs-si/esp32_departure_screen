@@ -100,7 +100,6 @@ void updateDepartures() {
   Serial.println("numDepartures: " + numDepartures);
 
   Serial.println("Update Display...");
-  display->fillScreen(BLACK); 
   int coloums = min(min(numDepartures, maxColumns1), 2);
 
   for(int i=0; i<coloums; i++) {
