@@ -1,6 +1,14 @@
 #include "weather_icons.h"
 #include "display.h"
 
+void cloud(int cloudX = PANEL_RES_X - 10, int cloudY = 0, uint16_t cloudColor = WHITE) {
+    // Wolke zeichnen (kompakte Form, max 4 Pixel hoch)
+    display->fillCircle(cloudX + 1, cloudY + 2, 1, cloudColor);
+    display->fillCircle(cloudX + 4, cloudY + 1, 1, cloudColor);
+    display->fillCircle(cloudX + 7, cloudY + 2, 1, cloudColor);
+    display->fillRect(cloudX + 1, cloudY + 2, 6, 2, cloudColor);
+}
+
 // Task für animierte Regenwolke rechts oben
 void rainCloudTask(void *pvParameters) {
   int rainFrame = 0;          
@@ -21,11 +29,7 @@ void rainCloudTask(void *pvParameters) {
       continue;
     }
 
-    // Wolke zeichnen (kompakte Form, max 4 Pixel hoch)
-    display->fillCircle(cloudX + 1, cloudY + 2, 1, cloudColor);
-    display->fillCircle(cloudX + 4, cloudY + 1, 1, cloudColor);
-    display->fillCircle(cloudX + 7, cloudY + 2, 1, cloudColor);
-    display->fillRect(cloudX + 1, cloudY + 2, 6, 2, cloudColor);
+    cloud(cloudX, cloudY, cloudColor);
 
     // Vorherige Regenstreifen löschen
     for (int i = 0; i < 3; i++) {
@@ -53,4 +57,18 @@ void startRainCloudTask() {
     1,                  // Priorität
     NULL                // Task-Handle
   );
+}
+
+// Kleine Wolke rechts oben mit Sonne dahinter, max. 8 Pixel hoch
+void cloudWithSun(int cloudX, int cloudY, uint16_t cloudColor, uint16_t sunColor) {
+    // Sonne hinter der Wolke, etwas höher
+    int sunRadius = 3;
+    int sunX = cloudX + 5;  // rechts hinter der Wolke
+    int sunY = cloudY - 2;  // etwas höher, maximal 8 Pixel hoch
+
+    // Sonne als Kreis
+    display->fillCircle(sunX, sunY, sunRadius, sunColor);
+
+    // Wolke zeichnen (nutzt vorhandene Funktion)
+    cloud(cloudX, cloudY, cloudColor);
 }

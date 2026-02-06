@@ -201,6 +201,17 @@ void ScrollingText::stop() {
     }
 }
 
+// Löscht den Text auf dem Display
+void ScrollingText::clear() {
+    stop(); // Sicherstellen, dass der Task gestoppt ist
+    if (!display) return;
+    int areaWidth = xEnd - xStart;
+    int fontHeight = 8 * textSize;
+    int y = getYFromVerticalPos(vPos);
+
+    display->fillRect(xStart, y, areaWidth, fontHeight + 1, BLACK);
+}
+
 // FreeRTOS Task-Funktion
 void ScrollingText::scrollTask(void *param) {
     ScrollingText *self = static_cast<ScrollingText*>(param);

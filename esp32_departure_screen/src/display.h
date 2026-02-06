@@ -73,6 +73,9 @@ public:
     // Stoppt den laufenden Scrolltext
     void stop();
 
+    // Löscht den Text auf dem Display
+    void clear();
+
 private:
     String text;
     int xStart;

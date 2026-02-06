@@ -48,16 +48,12 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  drawStaticText("Freitag", 0, PANEL_RES_X-15, ROW_1, ALIGN_LEFT, BLUE, 1);
+  drawStaticText("   Montag", 0, PANEL_RES_X-15, ROW_1, ALIGN_LEFT, BLUE, 1);
   
   startRainCloudTask();
 
-  line1text = new ScrollingText("Kai! Es ist 15 Uhr!!! ---", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 160, 8);
+  line1text = new ScrollingText("Hallo Christoph! Schau wie schlau ich bin! Du hottie Karottie!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
-
-  delay(10000);
-
-  line1text->stop();
 }
 
 int lastUpdate = millis();
