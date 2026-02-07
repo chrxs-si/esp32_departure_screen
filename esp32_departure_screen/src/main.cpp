@@ -77,7 +77,7 @@ void setup() {
   tzset();
 
   drawCloud();
-  startRainTask();
+  startRainTask(3, 200, LIGHTBLUE);
 
   line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();

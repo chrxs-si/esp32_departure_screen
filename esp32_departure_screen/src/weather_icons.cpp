@@ -25,8 +25,10 @@ void rainTask(void *pvParameters) {
   int rainFrame = 0;          
   const TickType_t delayTicks = rainDelayMs / portTICK_PERIOD_MS;
 
-  const int rainStartX = PANEL_RES_X - 4;
-  const int rainStartY = 4;   // Regen innerhalb der 8 Pixel
+  const int centerX = PANEL_RES_X - 5; // echte Mitte der Regenstreifen
+  const int rainStartY = 4;
+
+  const int spacing = 2;
 
   while (true) {
     if (!display) {
@@ -34,16 +36,16 @@ void rainTask(void *pvParameters) {
       continue;
     }
 
-    // Vorherige Regenstreifen löschen
+    // Alte Regenstreifen löschen
     for (int i = 0; i < rainIntensity; i++) {
-      int x = rainStartX + i * 3 - 2 * (rainIntensity - 1);
+      int x = centerX + (i - (rainIntensity - 1) / 1.5f) * spacing;
       display->drawLine(x, rainStartY, x, rainStartY + 3, BLACK);
     }
 
-    // Aktuelle Regenstreifen zeichnen
+    // Neue Regenstreifen zeichnen
     for (int i = 0; i < rainIntensity; i++) {
-      int offset = (rainFrame + i) % 3; // maximal 3 Pixel hoch
-      int x = rainStartX + i * 3 - 2 * (rainIntensity - 1);
+      int offset = (rainFrame + i) % 3;
+      int x = centerX + (i - (rainIntensity - 1) / 1.5f) * spacing;
       display->drawLine(x, rainStartY + offset, x, rainStartY + 1 + offset, rainColor);
     }
 

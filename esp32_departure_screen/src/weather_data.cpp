@@ -1,5 +1,6 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <WiFi.h>
 #include "weather_data.h"
 
 String fetchWeatherJson(float latitude, float longitude) {
