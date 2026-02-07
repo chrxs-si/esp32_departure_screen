@@ -1,3 +1,6 @@
+#ifndef DISPLAY_H
+#define DISPLAY_H
+
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <Adafruit_GFX.h>
 
@@ -47,6 +50,10 @@ void initDisplay();
 
 VerticalPos getVerticalPosForRow(int row);
 
+int getYFromVerticalPos(VerticalPos pos);
+
+int getTextWidth(const String &text, uint8_t textSize);
+
 void displayText(String text, int line, uint16_t color, TextAlign align = ALIGN_CENTER);
 
 void drawStaticText(const String &text, int xStart = 0, int xEnd = PANEL_RES_X, VerticalPos vPos = ROW_1, TextAlign align = ALIGN_LEFT, uint16_t color = WHITE, uint8_t textSize = 1);
@@ -95,3 +102,5 @@ private:
     void prepareText();
     static void scrollTask(void *param);
 };
+
+#endif

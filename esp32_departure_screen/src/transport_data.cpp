@@ -34,11 +34,12 @@ String getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
   http.begin(apiURL);
   int httpCode = http.GET();
 
-  String json = "{\"message\":\"API error\"}";
+  String json = "";
   if(httpCode > 0) {
     json = http.getString();
     Serial.println("Successful API request.");
   } else {
+    json = "{\"message\":\"API error\", \"code\":" + String(httpCode) + "}";
     Serial.println("Fehler bei der API-Anfrage, HTTP Code: " + String(httpCode));
   }
 
@@ -53,7 +54,7 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
     if (err) {
         Serial.print("JSON Fehler: ");
         Serial.println(err.c_str());
-        return 0;
+        return -1;
     }
 
     JsonArray departures = doc["departures"].as<JsonArray>();
@@ -92,20 +93,20 @@ String cutString(const String& str, int maxLength) {
 }
 
 void updateDepartures() {
-  Serial.println("Aktualisiere Abfahrten...");
-  Serial.println("get Departures...");
   String json = getDeparturesJson(stop1, line1, maxColumns1);
-  Serial.println("parse Departures...");
   int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
-  Serial.println("numDepartures: " + numDepartures);
-
-  Serial.println("Update Display...");
   int coloums = min(min(numDepartures, maxColumns1), 2);
+
+  if (coloums == 0) {
+    drawStaticText("Keine", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText("Abfahrten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    return;
+  }
 
   for(int i=0; i<coloums; i++) {
     String dest = cutString(String(departures[i].destination), MAX_DEST_LEN);
 
-    drawStaticText(dest, 0, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
-    drawStaticText(String(departures[i].minutes), 0, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+    drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+    drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
   }
 }

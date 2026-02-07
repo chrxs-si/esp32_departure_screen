@@ -1,4 +1,5 @@
 #include "display.h"
+#include <time.h>
 
 uint16_t DEPARTURE_COLOR;
 uint16_t BLACK;
@@ -42,7 +43,7 @@ void initDisplay() {
   BROWN   = display->color565(165, 42, 42);
   GRAY    = display->color565(128, 128, 128);
   LIGHTGRAY = display->color565(192, 192, 192);
-  DARKGREEN = display->color565(0, 100, 0);
+  DARKGREEN = display->color565(0, 255, 0);
   LIGHTBLUE = display->color565(173, 216, 230);
 }
 
