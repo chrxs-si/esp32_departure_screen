@@ -49,7 +49,8 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  startRainCloudTask();
+  drawCloud();
+  startRainTask();
 
   line1text = new ScrollingText("Hallo Christoph! Schau wie schlau ich bin! Du hottie Karottie!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
