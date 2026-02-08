@@ -67,7 +67,7 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
     int count = 0;
     for (JsonObject dep : departures) {
         const char* lineName = dep["line"]["name"] | "?";
-        const char* dest     = dep["destination"]["name"] | "?";
+        const char* dest     = dep["direction"] | "?";
         const char* when     = dep["when"] | "?";
 
         if (!lineName[0] || !dest[0] || !when[0]) continue;
@@ -76,8 +76,8 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
-        strncpy(result[count].destination, dest, MAX_DEST_LEN - 1);
 
+        result[count].destination = dest;
         result[count].minutes = isoToRelativeMinutes(when);
         result[count].delay = dep["delay"].isNull() ? 0 : dep["delay"].as<int>() / 60;
 
@@ -93,6 +93,8 @@ String cutString(const String& str, int maxLength) {
 }
 
 void updateDepartures() {
+  Serial.print("update departures.");
+
   String json = getDeparturesJson(stop1, line1, maxColumns1);
   int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
   int coloums = min(min(numDepartures, maxColumns1), 2);
@@ -104,7 +106,18 @@ void updateDepartures() {
   }
 
   for(int i=0; i<coloums; i++) {
-    String dest = cutString(String(departures[i].destination), MAX_DEST_LEN);
+    String dest = String(departures[i].destination);
+
+    // Anfang (wie z.B. "U", "S+U" abschneiden)
+    int pos = dest.indexOf(' ');
+    if (pos != -1) {
+        dest = dest.substring(pos + 1);
+    }
+
+    // Länge begrenzen
+    if (dest.length() > MAX_DEST_LEN) {
+      dest = dest.substring(0, MAX_DEST_LEN);
+    }
 
     drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);

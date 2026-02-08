@@ -17,7 +17,7 @@ ScrollingText *line2text;
 Clock myClock;
 
 void updateTemprature(int temp) {
-  uint16_t textColor;
+    uint16_t textColor;
 
   // Farbwahl je nach Temperatur
   if (temp <= 0) {
@@ -35,14 +35,19 @@ void updateTemprature(int temp) {
   drawStaticText(String(temp) + String("C"), PANEL_RES_X - 35, PANEL_RES_X - 11, ROW_1, ALIGN_RIGHT, textColor, 1);
 }
 
-
-
 void updateWeather() {
+  Serial.print("update Weather.");
+
   String weatherJson = fetchWeatherJson(52.5170365, 13.3888599);
   WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
 
   updateTemprature((int)round(data.temperature_2m));
   updateWeatherIcon(data.weather_code);
+}
+
+void updateScrollingText() {
+  Serial.print("update scrolling Text.");
+
 }
 
 void setup() {
@@ -86,17 +91,39 @@ void setup() {
   line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
 
-  myClock.start();
+  //myClock.start();
 }
 
 int lastUpdate = millis();
-int speedMs = 30000;
+int departureSecondsCounter = 0;
+int weatherSecondsCounter = 0;
+int ScrollingTextSecondsCounter = 0;
 
 void loop() {
     unsigned long now = millis();
-    if (now - lastUpdate > speedMs) {
-      server.handleClient();
-      updateDepartures();
+
+    // Sekunden hochzählen
+    if (now - lastUpdate > 1000) {
       lastUpdate = now;
+
+      departureSecondsCounter += 1;
+      weatherSecondsCounter += 1;
+      ScrollingTextSecondsCounter += 1;
+
+    }
+
+    if (departureSecondsCounter >= 6) { // alle 6 Sekunden
+      departureSecondsCounter = 0;
+      updateDepartures();
+    }
+
+    if (weatherSecondsCounter >= 600) { // alle 6 Minuten
+      weatherSecondsCounter = 0;
+      updateWeather();
+    }
+
+    if (ScrollingTextSecondsCounter >= 21000) { // alle 6 Stunden
+      ScrollingTextSecondsCounter = 0;
+      updateScrollingText();
     }
 }

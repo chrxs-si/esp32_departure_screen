@@ -46,7 +46,7 @@ void Clock::clear() {
     }
 
     int rowHeight = 8; // Standardhöhe
-    display->fillRect(x, y, x+textWidth, rowHeight, BLACK);
+    display->fillRect(x, y, x+textWidth, y + rowHeight, BLACK);
 }
 
 // Task-Funktion
@@ -85,5 +85,5 @@ void Clock::drawTime() {
     }
 
     drawStaticText(currentTime, x, x + textWidth, vPos, align, LIGHTBLUE, 1);
-    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, LIGHTBLUE, 1);
+    //drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, LIGHTBLUE, 1);
 }

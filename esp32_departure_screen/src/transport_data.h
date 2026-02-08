@@ -3,10 +3,10 @@
 //parsen & Anzeigen
 #define MAX_DEPARTURES 8 //Max departures requested from API
 #define MAX_LINE_LEN   4
-#define MAX_DEST_LEN   9
+#define MAX_DEST_LEN   8
 struct Departure {
   char line[MAX_LINE_LEN];
-  char destination[MAX_DEST_LEN];
+  String destination;
   int minutes;
   int delay;
 };
