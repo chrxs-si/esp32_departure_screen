@@ -91,7 +91,7 @@ void setup() {
   line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
 
-  //myClock.start();
+  myClock.start();
 }
 
 int lastUpdate = millis();

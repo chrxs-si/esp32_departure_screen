@@ -75,7 +75,7 @@ void Clock::drawTime() {
 
     int textWidth = getTextWidth(currentTime, 1); // textSize 1
 
-    clear(); // vorherigen Bereich löschen
+    //clear(); // vorherigen Bereich löschen
 
     int x = 0;
     switch (align) {
@@ -84,6 +84,6 @@ void Clock::drawTime() {
         case ALIGN_RIGHT: x = PANEL_RES_X - textWidth; break;
     }
 
-    drawStaticText(currentTime, x, x + textWidth, vPos, align, LIGHTBLUE, 1);
-    //drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, LIGHTBLUE, 1);
+    //drawStaticText(currentTime, x, x + textWidth, vPos, align, LIGHTBLUE, 1);
+    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, LIGHTBLUE, 1);
 }

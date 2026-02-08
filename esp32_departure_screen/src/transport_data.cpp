@@ -110,7 +110,7 @@ void updateDepartures() {
 
     // Anfang (wie z.B. "U", "S+U" abschneiden)
     int pos = dest.indexOf(' ');
-    if (pos != -1) {
+    if (pos != -1 && pos < 4) {
         dest = dest.substring(pos + 1);
     }
 
