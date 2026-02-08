@@ -16,12 +16,7 @@ ScrollingText *line1text;
 ScrollingText *line2text;
 Clock myClock;
 
-void updateTemprature() {
-  String weatherJson = fetchWeatherJson(52.5170365, 13.3888599);
-  WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
-
-  int temp = (int)round(data.temperature_2m);
-  
+void updateTemprature(int temp) {
   uint16_t textColor;
 
   // Farbwahl je nach Temperatur
@@ -38,6 +33,16 @@ void updateTemprature() {
   }
 
   drawStaticText(String(temp) + String("C"), PANEL_RES_X - 35, PANEL_RES_X - 11, ROW_1, ALIGN_RIGHT, textColor, 1);
+}
+
+
+
+void updateWeather() {
+  String weatherJson = fetchWeatherJson(52.5170365, 13.3888599);
+  WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
+
+  updateTemprature((int)round(data.temperature_2m));
+  updateWeatherIcon(data.weather_code);
 }
 
 void setup() {
@@ -76,15 +81,12 @@ void setup() {
   setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
   tzset();
 
-  drawCloud();
-  startRainTask(3, 200, LIGHTBLUE);
+  updateWeather();
 
   line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   line1text->start();
 
   myClock.start();
-
-  updateTemprature();
 }
 
 int lastUpdate = millis();
@@ -94,7 +96,7 @@ void loop() {
     unsigned long now = millis();
     if (now - lastUpdate > speedMs) {
       server.handleClient();
-      //updateDepartures();
+      updateDepartures();
       lastUpdate = now;
     }
 }
