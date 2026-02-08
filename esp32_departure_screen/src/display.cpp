@@ -222,33 +222,54 @@ void ScrollingText::scrollTask(void *param) {
     ScrollingText *self = static_cast<ScrollingText*>(param);
 
     int areaWidth = self->xEnd - self->xStart;
-    int fontHeight = 8 * self->textSize;
+    // WICHTIG: Erhöhe die fontHeight leicht, um Ausreißer-Pixel zu löschen
+    int fontHeight = 8 * self->textSize; 
+    int yPos = getYFromVerticalPos(self->vPos);
 
     while (true) {
-        if (!display) { vTaskDelay(10 / portTICK_PERIOD_MS); continue; }
+        if (!display) { vTaskDelay(pdMS_TO_TICKS(10)); continue; }
 
-        display->fillRect(self->xStart, getYFromVerticalPos(self->vPos),
-                          areaWidth, fontHeight + 1, BLACK);
+        // 1. Bereich SCHWARZ machen (Löschen)
+        // Wir löschen etwas großzügiger (+1 oder +2 Pixel), 
+        // um Artefakte in der nächsten Zeile zu vermeiden.
+        display->fillRect(self->xStart, yPos, areaWidth, fontHeight, BLACK);
 
         display->setTextSize(self->textSize);
         display->setTextColor(self->color);
         display->setTextWrap(false);
 
+        // --- CLIPPING LOGIK ---
+        // Falls deine Library display->setClipRect(x, y, w, h) unterstützt, hier nutzen!
+        // Da viele das nicht haben, begrenzen wir es durch geschicktes Zeichnen:
+
         int x1 = self->xStart - self->offset;
-        int y = getYFromVerticalPos(self->vPos);
-        display->setCursor(x1, y);
+        
+        // Erster Text-Block
+        display->setCursor(x1, yPos);
         display->print(self->text);
 
-        if (x1 + self->textWidth < areaWidth) {
+        // Zweiter Text-Block für den Loop
+        if (x1 + self->textWidth < self->xStart + areaWidth) {
             int x2 = x1 + self->loopWidth;
-            display->setCursor(x2, y);
+            display->setCursor(x2, yPos);
             display->print(self->text);
+        }
+
+        // 2. WICHTIG: "Aufräumen" der Ränder
+        // Falls der Text links oder rechts über xStart/xEnd hinausschaut, 
+        // übermalen wir die Überstände außerhalb des gewünschten Bereichs.
+        // Das verhindert, dass Buchstaben in andere Bereiche "leaken".
+        if (self->xStart > 0) {
+            display->fillRect(0, yPos, self->xStart, fontHeight, BLACK);
+        }
+        if (self->xEnd < PANEL_RES_X) {
+            display->fillRect(self->xEnd, yPos, PANEL_RES_X - self->xEnd, fontHeight, BLACK);
         }
 
         self->offset += 1;
         if (self->offset >= self->loopWidth) self->offset -= self->loopWidth;
 
-        vTaskDelay(self->speedMs / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(self->speedMs));
     }
 }
 

@@ -89,6 +89,7 @@ void cloudWithSun(int cloudX, int cloudY, uint16_t cloudColor, uint16_t sunColor
 
 
 void updateWeatherIcon(int weatherCode) {
+  display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
 
   switch (weatherCode) {
     case 0: // Klar

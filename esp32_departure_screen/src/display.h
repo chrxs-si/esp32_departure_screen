@@ -62,45 +62,25 @@ void loadingTransition(int steps = 70, int delayTime = 40);
 
 class ScrollingText {
 public:
-    // Konstruktor
-    ScrollingText(
-        const String &scrollText,
-        int xStartPos,
-        int xEndPos,
-        VerticalPos verticalPos = ROW_1,
-        uint16_t textColor = WHITE,
-        uint8_t textSize = 1,
-        uint8_t scrollSpeedMs = 30,
-        int minGapPixels = 8
-    );
-
-    // Startet den Text asynchron
+    ScrollingText(const String &scrollText, int xStartPos, int xEndPos, 
+                  VerticalPos verticalPos, uint16_t textColor, 
+                  uint8_t textSize, uint8_t scrollSpeedMs, int minGapPixels);
+    
     void start();
-
-    // Stoppt den laufenden Scrolltext
     void stop();
-
-    // Löscht den Text auf dem Display
     void clear();
 
 private:
-    String text;
-    int xStart;
-    int xEnd;
-    VerticalPos vPos;
-    uint16_t color;
-    uint8_t textSize;
-    uint8_t speedMs;
-    int minGap;
-    int textWidth;
-
-    float offset;
-    float loopWidth;
-
-    TaskHandle_t taskHandle = nullptr; // Task-Handle speichern
-
-    void prepareText();
     static void scrollTask(void *param);
+    void prepareText();
+
+    String text;
+    int xStart, xEnd, textWidth, loopWidth, offset;
+    uint8_t textSize, speedMs;
+    uint16_t color;
+    VerticalPos vPos;
+    int minGap;
+    TaskHandle_t taskHandle = nullptr;
 };
 
 #endif
