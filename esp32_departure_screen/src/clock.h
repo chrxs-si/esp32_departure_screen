@@ -4,7 +4,7 @@
 class Clock {
 public:
     // Konstruktor
-    Clock(TextAlign align = ALIGN_LEFT, int row = 0, uint16_t color = WHITE);
+    Clock(TextAlign align = ALIGN_LEFT, int row = 0);
 
     // Methoden
     void start();      // Uhr starten
@@ -15,7 +15,6 @@ private:
     TextAlign align;
     int row;
     VerticalPos vPos;
-    uint16_t color;
     String currentTime;
 
     TaskHandle_t taskHandle;

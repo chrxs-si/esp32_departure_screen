@@ -118,7 +118,7 @@ void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, 
 
   int areaWidth = xEnd - xStart;
   int fontHeight = 8 * textSize;
-  display->fillRect(xStart, y, areaWidth, fontHeight + 1, BLACK);
+  display->fillRect(xStart, y, areaWidth, fontHeight, BLACK);
 
   int x;
   switch (align) {

@@ -97,7 +97,7 @@ void updateDepartures() {
 
   String json = getDeparturesJson(stop1, line1, maxColumns1);
   int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
-  int coloums = min(min(numDepartures, maxColumns1), 2);
+  int coloums = min(min(numDepartures, maxColumns1), 3);
 
   if (coloums == 0) {
     drawStaticText("Keine", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);

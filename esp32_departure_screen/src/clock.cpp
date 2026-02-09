@@ -1,8 +1,10 @@
 #include "clock.h"
 #include "display.h"
 
-Clock::Clock(TextAlign align, int row, uint16_t color)
-    : align(align), row(row), color(color), taskHandle(nullptr)
+uint16_t color = BLUE;
+
+Clock::Clock(TextAlign align, int row)
+    : align(align), row(row), taskHandle(nullptr)
 {
     vPos = getVerticalPosForRow(row);
 }
@@ -46,7 +48,7 @@ void Clock::clear() {
     }
 
     int rowHeight = 8; // Standardhöhe
-    display->fillRect(x, y, x+textWidth, y + rowHeight, BLACK);
+    display->fillRect(x, y, textWidth, rowHeight, BLACK);
 }
 
 // Task-Funktion
@@ -85,5 +87,5 @@ void Clock::drawTime() {
     }
 
     //drawStaticText(currentTime, x, x + textWidth, vPos, align, LIGHTBLUE, 1);
-    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, LIGHTBLUE, 1);
+    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, BLUE, 1);
 }
