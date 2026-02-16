@@ -37,15 +37,24 @@ void updateTemprature(int temp) {
 void updateWeather() {
   Serial.print("update Weather.");
 
-  String weatherJson = fetchWeatherJson(52.5170365, 13.3888599);
+  String weatherJson = fetchWeatherJson(latitudeStop, longitudeStop);
   WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
 
   updateTemprature((int)round(data.temperature_2m));
   updateWeatherIcon(data.weather_code);
 }
 
+void updateSystemTime() {
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  time_t now;
+  while (time(&now) < 100000) {
+    delay(100);
+  }
+  setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+  tzset();
+}
+
 void updateScrollingText() {
-  Serial.print("update scrolling Text.");
 
 }
 
@@ -75,28 +84,19 @@ void setup() {
     Serial.print("No wifi connection yet...");
   }
   Serial.println("WiFi connected.");
-  
-  // Set systemtime and timezone to CET/CEST
-  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-  time_t now;
-  while (time(&now) < 100000) {
-    delay(100);
-  }
-  setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
-  tzset();
-
-  updateWeather();
 
   //line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
   //line1text->start();
 
-  myClock.start();
+  if (showWeatherTime) {
+    myClock.start();
+  }
 }
 
 int lastUpdate = millis();
-int departureSecondsCounter = 0;
-int weatherSecondsCounter = 0;
-int ScrollingTextSecondsCounter = 0;
+int departureSecondsCounter = 999999;
+int weatherSecondsCounter = 999999;
+int ScrollingTextSecondsCounter = 999999;
 
 void loop() {
 
@@ -119,11 +119,14 @@ void loop() {
 
   if (weatherSecondsCounter >= 600) { // alle 6 Minuten
     weatherSecondsCounter = 0;
-    updateWeather();
+    if (showWeatherTime) {
+      updateWeather();
+    }
   }
 
   if (ScrollingTextSecondsCounter >= 21000) { // alle 6 Stunden
     ScrollingTextSecondsCounter = 0;
     updateScrollingText();
+    updateSystemTime(); // Systemzeit alle 6 Stunden aktualisieren, um Drift zu vermeiden
   }
 }

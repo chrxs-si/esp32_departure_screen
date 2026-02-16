@@ -6,6 +6,7 @@ int rainDelayMs = 150;
 int rainLength = 2; // Länge der Regenstreifen in Pixeln, 1 oder 2
 uint16_t rainColor = BLUE;
 
+TaskHandle_t rainTaskHandle = NULL;
 
 void drawCloud(int cloudX, int cloudY, uint16_t cloudColor) {
     // Wolke zeichnen (kompakte Form, max 4 Pixel hoch)
@@ -62,14 +63,29 @@ void startRainTask(int intensity, int delayMs, int length, uint16_t color) {
   rainDelayMs = delayMs;
   rainLength = length;
 
+  if (rainTaskHandle != NULL) {
+    vTaskDelete(rainTaskHandle);
+    rainTaskHandle = NULL;
+  }
+
   xTaskCreate(
     rainTask,      // Task-Funktion
     "Rain",        // Name
     2048,               // Stackgröße
     NULL,               // Parameter
     1,                  // Priorität
-    NULL                // Task-Handle
+    &rainTaskHandle     // Task-Handle
   );
+}
+
+void stopRainTask() {
+  if (rainTaskHandle != NULL) {
+    vTaskDelete(rainTaskHandle);
+    rainTaskHandle = NULL;
+  }
+
+  // Regenbereich löschen
+  display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
 }
 
 // Kleine Wolke rechts oben mit Sonne dahinter, max. 8 Pixel hoch
@@ -89,6 +105,8 @@ void cloudWithSun(int cloudX, int cloudY, uint16_t cloudColor, uint16_t sunColor
 
 
 void updateWeatherIcon(int weatherCode) {
+  stopRainTask();
+
   display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
 
   switch (weatherCode) {
@@ -141,16 +159,16 @@ void updateWeatherIcon(int weatherCode) {
 
     case 71: // leichter Schnee
       drawCloud(PANEL_RES_X - 10, 0, WHITE);
-      startRainTask(2, 450, 1, LIGHTBLUE);
+      startRainTask(2, 550, 1, LIGHTBLUE);
       break;
     case 73: // mittlerer Schnee
     case 77: // Schneekörner
       drawCloud(PANEL_RES_X - 10, 0, WHITE);
-      startRainTask(3, 400, 1, LIGHTBLUE);
+      startRainTask(3, 500, 1, LIGHTBLUE);
       break;
     case 75: // starker Schnee
       drawCloud(PANEL_RES_X - 10, 0, WHITE);
-      startRainTask(4, 350, 1, LIGHTBLUE);
+      startRainTask(4, 450, 1, LIGHTBLUE);
       break;
 
     case 80: // slight rain shower
@@ -173,13 +191,13 @@ void updateWeatherIcon(int weatherCode) {
     case 85: // slight snow shower
     case 96: // Thunderstorm with slight hail
       drawCloud(PANEL_RES_X - 10, 0, GRAY);
-      startRainTask(3, 180, 400, LIGHTBLUE);
+      startRainTask(3, 250, 1, LIGHTBLUE);
       //Blitz
       break;
     case 86: // heavy snow shower
     case 99: // Thunderstorm with slight hail
       drawCloud(PANEL_RES_X - 10, 0, GRAY);
-      startRainTask(4, 150, 350, LIGHTBLUE);
+      startRainTask(4, 200, 1, LIGHTBLUE);
       //Blitz
       break;
 

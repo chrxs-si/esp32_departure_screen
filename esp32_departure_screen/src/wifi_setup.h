@@ -12,8 +12,8 @@ extern String selectedSSID;
 extern String selectedPassword;
 extern String selectedStopID;
 extern String selectedLine;
-extern String latitudeStop;
-extern String longitudeStop;
+extern float latitudeStop;
+extern float longitudeStop;
 extern bool showWeatherTime;
 
 // Hauptfunktionen

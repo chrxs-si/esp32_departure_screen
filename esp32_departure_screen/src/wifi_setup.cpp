@@ -15,8 +15,8 @@ String selectedPassword = "";
 String selectedStopName = "";
 String selectedStopID = "";
 String selectedLine = "";
-String latitudeStop = "";
-String longitudeStop = "";
+float latitudeStop = 52.5170365;
+float longitudeStop = 13.3888599;
 bool showWeatherTime = true;
 
 String wifiOptionsHTML = "";
@@ -172,14 +172,20 @@ bool setStopIDByName(String stopName) {
   float latitude = firstStop["location"]["latitude"];
   float longitude = firstStop["location"]["longitude"];
 
-  String latitudeStop = String(latitude, 6);
-  String longitudeStop = String(longitude, 6);
+  if (latitude && longitude) {
+    Serial.println("Latitude: " + String(latitude, 6));
+    Serial.println("Longitude: " + String(longitude, 6));
+    latitudeStop = latitude;
+    longitudeStop = longitude;
+  } else {
+    Serial.println("Keine gültigen Koordinaten gefunden.");
+  }
 
   http.end();
 
   display->clearScreen();
   drawStaticText("Setup", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
-  drawStaticText("erfolgreich!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("fertig!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
 
   delay(5000);
   display->clearScreen();
@@ -253,7 +259,7 @@ void handleSave() {
   }
 
   drawStaticText("Lade", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-  drawStaticText("Abfahrten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+  drawStaticText("Daten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 }
 
 

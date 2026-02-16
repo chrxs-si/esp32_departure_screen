@@ -72,7 +72,7 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
 
         if (!lineName[0] || !dest[0] || !when[0]) continue;
 
-        if (lineFilter && strcmp(lineName, lineFilter) != 0) continue;
+        if (lineFilter && lineFilter != "" && strcmp(lineName, lineFilter) != 0) continue;
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
@@ -97,7 +97,11 @@ void updateDepartures(int retrys) {
 
   String json = getDeparturesJson(selectedStopID, selectedLine);
   int numDepartures = parseDepartures(json, selectedLine.c_str(), departures, MAX_DEPARTURES);
-  int coloums = min(numDepartures, 3);
+  int maxShownDepartures = 3;
+  if (!showWeatherTime) {
+    maxShownDepartures = 4;
+  }
+  int coloums = min(numDepartures, maxShownDepartures);
 
   if (coloums == 0) {
 
@@ -110,9 +114,12 @@ void updateDepartures(int retrys) {
       return;
     }
 
+    if (!showWeatherTime) {
+      drawStaticText("", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, BLACK, 1);
+    }
     drawStaticText("Keine", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
     drawStaticText("Abfahrten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-    drawStaticText("", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText("", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, BLACK, 1);
     return;
   }
 
@@ -130,7 +137,12 @@ void updateDepartures(int retrys) {
       dest = dest.substring(0, MAX_DEST_LEN);
     }
 
-    drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
-    drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+    if (showWeatherTime) {
+      drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+    } else {
+      drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+    }
   }
 }
