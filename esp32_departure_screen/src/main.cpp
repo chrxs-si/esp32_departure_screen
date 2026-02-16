@@ -54,6 +54,8 @@ void setup() {
   Serial.println("starte setup...");
   initDisplay();
 
+  randomSeed(esp_random()); 
+
   //loadingTransition(70);
   if (false) {
     selectedStopID = "900024208";

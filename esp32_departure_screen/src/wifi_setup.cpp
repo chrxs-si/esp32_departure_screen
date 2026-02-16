@@ -5,8 +5,8 @@
 
 WebServer server(80);
 DNSServer dnsServer;
-String espSSID = "ESP32-SETUP";
-String espPassword = "10625145";
+String espSSID = "SETUP-" + String(random(100, 1000));
+String espPassword = String(random(10000000, 100000000));
 
 // Globale Variablen
 bool inConfigMode = false;
@@ -52,10 +52,12 @@ void handleRoot() {
   </head>
   <body>
     <h2>Display Konfiguration</h2>
-    <p>Bitte WLAN auswählen und Passwort des WLAN's angeben.</p>
-    <p>Unter "Haltestelle" den eindeutigen Namens-Anfang der Haltestelle angeben. In der Regel reichen die ersten paar Buchstaben, damit die Hatestelle eindeutig gefunden werden kann.</p>
+    <p>Wie schön, dass du es hierher geschafft hast! Hier kannst du dein Display konfigurieren. Beachte dafür bitte folgende Hinweise:</p>
+    <p>Bitte wähle das WLAN aus und setze das Passwort des WLAN's.</p>
+    <p>Unter "Haltestelle" den eindeutigen Namens-Anfang der Haltestelle angeben. In der Regel reichen die ersten paar Buchstaben, damit die Haltestelle eindeutig gefunden werden kann. Den extakten richtigen Namen zu finden kann schiwerig sein. Der exakte Name von z.B. Google Maps sollte in der Regelfunktionieren.</p>
     <p>Unter "Linie" die Linie angeben, falls gewünscht (z.B. "U1"(U-Bahn), "S1"(S-Bahn), "61"(Straßenbahn), "100"(Bus), etc.).</p>
-
+    <p>Wetter und Uhrzeit wird standardmäßig angezeigt und kann ausgestellt werden.</p>
+    
     <form action="/save" method="POST">
       <label>WLAN Netzwerk*:</label><br>
       <select name="ssid">
@@ -155,8 +157,15 @@ bool setStopIDByName(String stopName) {
 
   String rawId = firstStop["id"].as<String>();
 
-  int lastColon = rawId.lastIndexOf(':');
-  selectedStopID = rawId.substring(rawId.lastIndexOf(':', lastColon - 1) + 1, lastColon);
+  Serial.println("raw Stop ID: " + rawId);
+
+  int firstColon  = rawId.indexOf(':');                // Position des ersten :
+  int secondColon = rawId.indexOf(':', firstColon + 1); // Position des zweiten :
+  int lastColon   = rawId.lastIndexOf(':');            // Position des letzten :
+  int secondLastColon = rawId.lastIndexOf(':', lastColon - 1); // vorletzter :
+
+  // Alles bis zum zweiten : entfernen und alles ab dem vorletzten :
+  selectedStopID = rawId.substring(secondColon + 1, secondLastColon);
   Serial.println("Stop ID: " + selectedStopID);
 
   // Latitude & Longitude für das Wetter
@@ -167,6 +176,13 @@ bool setStopIDByName(String stopName) {
   String longitudeStop = String(longitude, 6);
 
   http.end();
+
+  display->clearScreen();
+  drawStaticText("Setup", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("erfolgreich!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
+
+  delay(5000);
+  display->clearScreen();
 
   return true;
 }
@@ -187,6 +203,12 @@ void handleSave() {
 
   server.send(200, "text/html",
               "<html><body><h3>Daten werden gespeichert</h3></body></html>");
+
+  Serial.println("Gespeicherte Daten:");
+  Serial.println("SSID: " + selectedSSID);
+  Serial.println("Password: " + selectedPassword);
+  Serial.println("Stop Name: " + selectedStopName);
+  Serial.println("Line: " + selectedLine);
 
   delay(2000);
 
@@ -221,14 +243,17 @@ void handleSave() {
   server.send(200, "text/html",
             "<html><body><h3>Konfiguration erfolgreich!</h3></body></html>");
 
-  delay(2000);
+  delay(5000);
 
   bool success = setStopIDByName(selectedStopName);
   if (!success) {
-    delay(3000);
+    delay(5000);
     Config(); // Neustart Konfiguration bei Fehler
     return;
   }
+
+  drawStaticText("Lade", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+  drawStaticText("Abfahrten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 }
 
 
@@ -266,7 +291,7 @@ void Config() {
   inConfigMode = true;
 
   display->clearScreen();
-  drawStaticText("STARTE", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("starte", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
   drawStaticText("SETUP", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
   delay(2000);
 
