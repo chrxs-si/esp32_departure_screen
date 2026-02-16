@@ -13,7 +13,6 @@
 //Useless Facts API: https://uselessfacts.jsph.pl/api/v2/facts/random?language=de
 
 ScrollingText *line1text;
-ScrollingText *line2text;
 Clock myClock;
 
 void updateTemprature(int temp) {
@@ -88,8 +87,8 @@ void setup() {
 
   updateWeather();
 
-  line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
-  line1text->start();
+  //line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
+  //line1text->start();
 
   myClock.start();
 }
