@@ -2,25 +2,29 @@
 #define WIFI_SETUP_H
 
 #include <WiFi.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
 #include <WebServer.h>
 #include <DNSServer.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
 
 // Globale Konfigurationswerte
+extern bool inConfigMode;
+
 extern String selectedSSID;
 extern String selectedPassword;
+
+extern String selectedStopName;
 extern String selectedStopID;
 extern String selectedLine;
+
 extern float latitudeStop;
 extern float longitudeStop;
+
 extern bool showWeatherTime;
 
 // Hauptfunktionen
 void Config();
-void startAP();
-void setupAP();
-void connectToWifi(String SSID, String password);
+void connectToWifi(String ssid, String password);
 void scanWIFIOptions();
 
 #endif
