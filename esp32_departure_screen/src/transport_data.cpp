@@ -22,7 +22,7 @@ long isoToRelativeMinutes(const String& isoTime) {
   return (target - now) / 60;
 }
 
-String getDeparturesJson(String stopID, String lineFilter, int maxColumns) {
+String getDeparturesJson(String stopID, String lineFilter) {
   if(WiFi.status() != WL_CONNECTED) {
     Serial.println("Nicht mit WLAN verbunden!");
     String json = "{\"message\":\"Wifi error\"}";
@@ -95,9 +95,9 @@ String cutString(const String& str, int maxLength) {
 void updateDepartures(int retrys) {
   Serial.print("update departures.");
 
-  String json = getDeparturesJson(stop1, line1, maxColumns1);
-  int numDepartures = parseDepartures(json, line1.c_str(), departures, MAX_DEPARTURES);
-  int coloums = min(min(numDepartures, maxColumns1), 3);
+  String json = getDeparturesJson(selectedStopID, selectedLine);
+  int numDepartures = parseDepartures(json, selectedLine.c_str(), departures, MAX_DEPARTURES);
+  int coloums = min(numDepartures, 3);
 
   if (coloums == 0) {
 

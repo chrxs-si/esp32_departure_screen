@@ -55,13 +55,11 @@ void setup() {
   initDisplay();
 
   //loadingTransition(70);
-  if (true) {
-    stop1 = "900024208";
-    line1 = "101";
-    maxColumns1 = 4;
-    minOffset1 = 0;
+  if (false) {
+    selectedStopID = "900024208";
+    selectedLine = "101";
 
-    connectToWiFi(selectedSSID, selectedPassword);
+    connectToWifi(selectedSSID, selectedPassword);
   }
   else {
     Config();
@@ -71,7 +69,7 @@ void setup() {
   //wait for wifi connection
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(1000);
     Serial.print("No wifi connection yet...");
   }
   Serial.println("WiFi connected.");
@@ -99,30 +97,31 @@ int weatherSecondsCounter = 0;
 int ScrollingTextSecondsCounter = 0;
 
 void loop() {
-    unsigned long now = millis();
 
-    // Sekunden hochzählen
-    if (now - lastUpdate > 1000) {
-      lastUpdate = now;
+  unsigned long now = millis();
 
-      departureSecondsCounter += 1;
-      weatherSecondsCounter += 1;
-      ScrollingTextSecondsCounter += 1;
+  // Sekunden hochzählen
+  if (now - lastUpdate > 1000) {
+    lastUpdate = now;
 
-    }
+    departureSecondsCounter += 1;
+    weatherSecondsCounter += 1;
+    ScrollingTextSecondsCounter += 1;
 
-    if (departureSecondsCounter >= 6) { // alle 6 Sekunden
-      departureSecondsCounter = 0;
-      updateDepartures();
-    }
+  }
 
-    if (weatherSecondsCounter >= 600) { // alle 6 Minuten
-      weatherSecondsCounter = 0;
-      updateWeather();
-    }
+  if (departureSecondsCounter >= 6) { // alle 6 Sekunden
+    departureSecondsCounter = 0;
+    updateDepartures();
+  }
 
-    if (ScrollingTextSecondsCounter >= 21000) { // alle 6 Stunden
-      ScrollingTextSecondsCounter = 0;
-      updateScrollingText();
-    }
+  if (weatherSecondsCounter >= 600) { // alle 6 Minuten
+    weatherSecondsCounter = 0;
+    updateWeather();
+  }
+
+  if (ScrollingTextSecondsCounter >= 21000) { // alle 6 Stunden
+    ScrollingTextSecondsCounter = 0;
+    updateScrollingText();
+  }
 }
