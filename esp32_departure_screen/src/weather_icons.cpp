@@ -104,21 +104,26 @@ void cloudWithSun(int cloudX, int cloudY, uint16_t cloudColor, uint16_t sunColor
 
 
 
-void updateWeatherIcon(int weatherCode) {
+void updateWeatherIcon(int weatherCode, bool isDay) {
   stopRainTask();
 
   display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
 
+  weatherCode = 2;
+
   switch (weatherCode) {
     case 0: // Klar
       drawSun(PANEL_RES_X - 6, 4, 3, YELLOW);
+      if (!isDay) { drawSun(PANEL_RES_X - 8, 4, 2, BLACK); }
       break;
     case 1: // kaum bewölkt
       drawSun(PANEL_RES_X - 3, 3, 2, YELLOW);
+      if (!isDay) { drawSun(PANEL_RES_X - 5, 3, 2, BLACK); }
       drawCloud(PANEL_RES_X - 10, 3, WHITE);
       break;
     case 2: // mittel Bewölkt
       drawSun(PANEL_RES_X - 3, 2, 1, YELLOW);
+      if (!isDay) { drawSun(PANEL_RES_X - 5, 2, 1, BLACK); }
       drawCloud(PANEL_RES_X - 10, 2, WHITE);
       break;
     case 3: // Bewölkt

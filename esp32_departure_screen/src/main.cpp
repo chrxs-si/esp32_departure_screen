@@ -34,6 +34,14 @@ void updateTemprature(int temp) {
   drawStaticText(String(temp) + String("C"), PANEL_RES_X - 35, PANEL_RES_X - 11, ROW_1, ALIGN_RIGHT, textColor, 1);
 }
 
+void updateBrightness(bool is_day) {
+   if (is_day) {
+    display->setBrightness8(100);
+  } else {
+    display->setBrightness8(50);
+  }
+}
+
 void updateWeather() {
   Serial.print("update Weather.");
 
@@ -41,7 +49,9 @@ void updateWeather() {
   WeatherData data = parseWeatherJson(weatherJson, data) ? data : WeatherData();
 
   updateTemprature((int)round(data.temperature_2m));
-  updateWeatherIcon(data.weather_code);
+  updateWeatherIcon(data.weather_code, data.is_day);
+
+  updateBrightness(data.is_day);
 }
 
 void updateSystemTime() {
@@ -66,11 +76,16 @@ void setup() {
   randomSeed(esp_random()); 
 
   //loadingTransition(70);
-  if (false) {
+  if (true) {
     selectedStopID = "900024208";
     selectedLine = "101";
+    selectedSSID = "MotivNet";
+    selectedPassword = "motivoli5";
 
     connectToWifi(selectedSSID, selectedPassword);
+    delay(1000);
+    updateWeather();
+    updateDepartures();
   }
   else {
     Config();

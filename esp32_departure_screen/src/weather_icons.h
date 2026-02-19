@@ -8,4 +8,4 @@ void drawCloud(int cloudX = PANEL_RES_X - 10, int cloudY = 0, uint16_t cloudColo
 
 void startRainTask(int intensity = 3, int delayMs = 150, int length = 2, uint16_t color = BLUE);
 
-void updateWeatherIcon(int weatherCode);
+void updateWeatherIcon(int weatherCode, bool isDay);

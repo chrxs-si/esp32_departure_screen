@@ -120,7 +120,7 @@ void handleSaveWifi() {
 
   display->clearScreen();
   drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
-  drawStaticText("Verbunden!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("verbunden!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
 
   server.sendHeader("Location", "/configStop", true);
   server.send(302, "text/plain", "");
@@ -161,6 +161,27 @@ void handleStopConfig() {
 }
 
 /* ======================= STATION PRÜFEN ========================= */
+
+String extractStationID(const String& rawId) {
+    String result = rawId;
+
+    // 1. Alles bis zum ersten ':' entfernen
+    int colonPos = result.indexOf(':');
+    if (colonPos != -1) result = result.substring(colonPos + 1);
+
+    // 2. Alles bis zum ersten ':' des neuen Strings entfernen
+    colonPos = result.indexOf(':');
+    if (colonPos != -1) result = result.substring(colonPos + 1);
+
+    // 3. Solange ':' vorkommt, alles ab dem letzten ':' entfernen
+    colonPos = result.lastIndexOf(':');
+    while (colonPos != -1) {
+        result = result.substring(0, colonPos);
+        colonPos = result.lastIndexOf(':');
+    }
+
+    return result;
+}
 
 bool setStopIDByName(String stopName) {
     display->clearScreen();
@@ -217,12 +238,7 @@ bool setStopIDByName(String stopName) {
 
   String rawId = firstStop["id"].as<String>();
 
-  int firstColon  = rawId.indexOf(':');
-  int secondColon = rawId.indexOf(':', firstColon + 1);
-  int lastColon   = rawId.lastIndexOf(':');
-  int secondLastColon = rawId.lastIndexOf(':', lastColon - 1);
-
-  selectedStopID = rawId.substring(secondColon + 1, secondLastColon);
+  selectedStopID = extractStationID(rawId);
   Serial.println("Stop ID: " + selectedStopID);
 
   // Latitude & Longitude für das Wetter

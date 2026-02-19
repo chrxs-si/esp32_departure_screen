@@ -30,6 +30,7 @@ String getDeparturesJson(String stopID, String lineFilter) {
   }
 
   String apiURL = "https://v6.vbb.transport.rest/stops/" + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30";
+  Serial.println("API URL: " + apiURL);
   HTTPClient http;
   http.begin(apiURL);
   int httpCode = http.GET();
@@ -47,7 +48,7 @@ String getDeparturesJson(String stopID, String lineFilter) {
   return json;
 }
 
-int parseDepartures(String json, const char* lineFilter, Departure* result, int maxResults) {
+int parseDepartures(String json, String lineFilter, Departure* result, int maxResults) {
     DynamicJsonDocument doc(16384);  // größerer Speicher
 
     DeserializationError err = deserializeJson(doc, json);
@@ -72,7 +73,7 @@ int parseDepartures(String json, const char* lineFilter, Departure* result, int 
 
         if (!lineName[0] || !dest[0] || !when[0]) continue;
 
-        if (lineFilter && lineFilter != "" && strcmp(lineName, lineFilter) != 0) continue;
+        if (lineFilter && lineFilter != "" && String(lineName) != lineFilter) continue;
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
@@ -96,7 +97,7 @@ void updateDepartures(int retrys) {
   Serial.print("update departures.");
 
   String json = getDeparturesJson(selectedStopID, selectedLine);
-  int numDepartures = parseDepartures(json, selectedLine.c_str(), departures, MAX_DEPARTURES);
+  int numDepartures = parseDepartures(json, selectedLine, departures, MAX_DEPARTURES);
   int maxShownDepartures = 3;
   if (!showWeatherTime) {
     maxShownDepartures = 4;
