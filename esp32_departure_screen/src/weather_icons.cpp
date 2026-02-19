@@ -109,8 +109,6 @@ void updateWeatherIcon(int weatherCode, bool isDay) {
 
   display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
 
-  weatherCode = 2;
-
   switch (weatherCode) {
     case 0: // Klar
       drawSun(PANEL_RES_X - 6, 4, 3, YELLOW);
