@@ -12,4 +12,4 @@ struct Departure {
 };
 extern Departure departures[MAX_DEPARTURES];
 
-void updateDepartures(int retrys = 0);
+void updateDepartures();

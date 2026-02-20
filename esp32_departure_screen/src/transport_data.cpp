@@ -93,7 +93,9 @@ String cutString(const String& str, int maxLength) {
   return str.substring(0, maxLength);
 }
 
-void updateDepartures(int retrys) {
+int retryCount = 0;
+
+void updateDepartures() {
   Serial.print("update departures.");
 
   String json = getDeparturesJson(selectedStopID, selectedLine);
@@ -106,12 +108,8 @@ void updateDepartures(int retrys) {
 
   if (coloums == 0) {
 
-    if (retrys < 2) {
-      Serial.println("Keine Abfahrten gefunden, versuche es erneut...");
-      delay(1000);
-      updateDepartures(retrys + 1);
-    } else {
-      Serial.println("Nach mehreren Versuchen keine Abfahrten gefunden.");
+    if (retryCount < 3) {
+      retryCount++;
       return;
     }
 
@@ -123,6 +121,8 @@ void updateDepartures(int retrys) {
     drawStaticText("", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, BLACK, 1);
     return;
   }
+
+  retryCount = 0;
 
   for(int i=0; i<coloums; i++) {
     String dest = String(departures[i].destination);
