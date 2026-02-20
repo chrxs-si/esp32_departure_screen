@@ -10,6 +10,7 @@
 #include "clock.h"
 
 //Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
+// API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
 //Useless Facts API: https://uselessfacts.jsph.pl/api/v2/facts/random?language=de
 
 ScrollingText *line1text;
@@ -76,7 +77,7 @@ void setup() {
   randomSeed(esp_random()); 
 
   //loadingTransition(70);
-  if (true) {
+  if (false) {
     selectedStopID = "900024208";
     selectedLine = "101";
     selectedSSID = "MotivNet";

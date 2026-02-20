@@ -59,7 +59,8 @@ void handleRoot() {
   </head>
   <body>
     <h2>WLAN Konfiguration</h2>
-    <p>Bitte WLAN auswählen und Passwort eingeben.</p>
+    <p>Hallo! schön das du es hierher geschafft hast. Um die Anzeige zu benutzen ist natürliche eine Internetverbindung nötig. Wähle also bitte unten dein WLAN aus und gebe das Passwort ein. Sollte dein WLAN nicht angezeigt werden, stecke das Display noch einmal vom Strom ab und wieder an. Mache das, wenn möglich, direkt neben dem WLAN-Router.</p>
+    <p>Bitte dein WLAN auswählen und das Passwort eingeben:</p>
 
     <form action="/saveWifi" method="POST">
       <label>WLAN Netzwerk*:</label><br>
@@ -103,7 +104,7 @@ void handleSaveWifi() {
 
   unsigned long startAttemptTime = millis();
   while (WiFi.status() != WL_CONNECTED &&
-         millis() - startAttemptTime < 12000) {
+         millis() - startAttemptTime < 9000) {
     delay(500);
   }
 
@@ -112,9 +113,16 @@ void handleSaveWifi() {
     drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, RED, 1);
     drawStaticText("Fehler!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, RED, 1);
 
-    delay(4000);
     server.sendHeader("Location", "/", true);
     server.send(302, "text/plain", "");
+
+    delay(4000);
+    display->clearScreen();
+    drawStaticText("WLAN:", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
+    drawStaticText(espSSID, 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
+    drawStaticText("Passwort:", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, WHITE, 1);
+    drawStaticText(espPassword, 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, RED, 1);
+
     return;
   }
 
@@ -124,6 +132,11 @@ void handleSaveWifi() {
 
   server.sendHeader("Location", "/configStop", true);
   server.send(302, "text/plain", "");
+
+  delay(4000);
+  display->clearScreen();
+  drawStaticText("Station", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("eingeben!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
 }
 
 /* ======================= SEITE 2 ========================= */
@@ -138,7 +151,10 @@ void handleStopConfig() {
     <title>Stationen Setup</title>
   </head>
   <body>
-    <h2>Stationen Konfiguration</h2>
+    <h2>Station Konfiguration</h2>
+    <p>Super! WLAN haben wir schon einmal. Als nächstes musst du angeben zu welcher Station du die Abfahrten angezeigt bekommen haben möchtest. Gebe dafür einen eindeutigen Teil des Stationsnamens ein, damit die Station gefunden werden kann (Bei "Warschauer Straße", würde z.B. "Warschauer" reichen). Bei Tippfehlern kann die Station leider nicht gefunden werden.</p>
+    <p>Du kannst außerdem optional eine bestimmte Linie eingeben. Fahren an der Station mehrere Linien, wird dann nur diese eine Linie angezeigt. Hier ein paar Beispiele wie die Linie geschrieben werden muss: Bus: z.B. "101", "M45", "N2", U-Bahn: z.B. "U1", S-Bahn: z.B. "S3", Tram z.B. "61", "M10", Regio: z.B. "RE1".</p>
+    <p>Das Display zeigt außerdem standardmäßig die aktuelle Uhrzeit und das Wetter an. Wenn du das nicht möchtest, kannst du die entsprechende Option einfach ausstellen.</p>
 
     <form action="/saveStop" method="POST">
 
@@ -230,14 +246,22 @@ bool setStopIDByName(String stopName) {
     drawStaticText("keine", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, RED, 1);
     drawStaticText("Station", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
     drawStaticText("gefunden!", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, RED, 1);
-    drawStaticText("Neustart!", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, WHITE, 1);
 
     Serial.println("Keine Station gefunden");
+
+    delay(4000);
+    display->clearScreen();
+    drawStaticText("Station", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("erneut", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("eingeben!", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, WHITE, 1);
+
     return false;
   }
 
+  selectedStopName = firstStop["name"].as<String>();
   String rawId = firstStop["id"].as<String>();
 
+  // Stop ID extrahieren
   selectedStopID = extractStationID(rawId);
   Serial.println("Stop ID: " + selectedStopID);
 
@@ -257,8 +281,9 @@ bool setStopIDByName(String stopName) {
   http.end();
 
   display->clearScreen();
-  drawStaticText("Setup", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
-  drawStaticText("fertig!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("Station", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("gefundne:", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, GREEN, 1);
+  drawStaticText(selectedStopName, 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 
   delay(5000);
   display->clearScreen();
