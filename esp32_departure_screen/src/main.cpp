@@ -78,8 +78,8 @@ void setup() {
 
   //loadingTransition(70);
   if (false) {
-    selectedStopID = "900024208";
-    selectedLine = "101";
+    selectedStopID = "900001201";
+    selectedLine = "S42";
     selectedSSID = "MotivNet";
     selectedPassword = "motivoli5";
 

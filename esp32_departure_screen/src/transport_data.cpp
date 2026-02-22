@@ -22,7 +22,7 @@ long isoToRelativeMinutes(const String& isoTime) {
   return (target - now) / 60;
 }
 
-String getDeparturesJson(String stopID, String lineFilter) {
+String getDeparturesJson(String stopID) {
   if(WiFi.status() != WL_CONNECTED) {
     Serial.println("Nicht mit WLAN verbunden!");
     String json = "{\"message\":\"Wifi error\"}";
@@ -48,8 +48,8 @@ String getDeparturesJson(String stopID, String lineFilter) {
   return json;
 }
 
-int parseDepartures(String json, String lineFilter, Departure* result, int maxResults) {
-    DynamicJsonDocument doc(16384);  // größerer Speicher
+int parseDepartures(String json, String lineFilter1, String lineFilter2, Departure* result, int maxResults) {
+    DynamicJsonDocument doc(32768);  // größerer Speicher
 
     DeserializationError err = deserializeJson(doc, json);
     if (err) {
@@ -73,7 +73,10 @@ int parseDepartures(String json, String lineFilter, Departure* result, int maxRe
 
         if (!lineName[0] || !dest[0] || !when[0]) continue;
 
-        if (lineFilter && lineFilter != "" && String(lineName) != lineFilter) continue;
+        bool useLineFilter1 = lineFilter1 && lineFilter1 != "";
+        bool useLineFilter2 = lineFilter2 && lineFilter2 != "";
+
+        if ((useLineFilter1 || useLineFilter2) && String(lineName) != lineFilter1 && String(lineName) != lineFilter2) continue;
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
@@ -98,8 +101,8 @@ int retryCount = 0;
 void updateDepartures() {
   Serial.print("update departures.");
 
-  String json = getDeparturesJson(selectedStopID, selectedLine);
-  int numDepartures = parseDepartures(json, selectedLine, departures, MAX_DEPARTURES);
+  String json = getDeparturesJson(selectedStopID);
+  int numDepartures = parseDepartures(json, selectedLine, selectedLine2, departures, MAX_DEPARTURES);
   int maxShownDepartures = 3;
   if (!showWeatherTime) {
     maxShownDepartures = 4;
@@ -138,8 +141,13 @@ void updateDepartures() {
       dest = dest.substring(0, MAX_DEST_LEN);
     }
 
+    String lineString = "";
+    if (showLine) {
+      lineString += String(departures[i].line) + " ";
+    } 
+
     if (showWeatherTime) {
-      drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
       drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
     } else {
       drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);

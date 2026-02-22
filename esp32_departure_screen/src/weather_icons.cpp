@@ -41,7 +41,7 @@ void rainTask(void *pvParameters) {
     // Alte Regenstreifen löschen
     for (int i = 0; i < rainIntensity; i++) {
       int x = centerX + (i - (rainIntensity - 1) / 1.5f) * spacing;
-      display->drawLine(x, rainStartY, x, rainStartY + rainLength + 2, BLACK);
+      display->drawLine(x, rainStartY, x, rainStartY + rainLength + 1, BLACK);
     }
 
     // Neue Regenstreifen zeichnen

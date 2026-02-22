@@ -18,10 +18,12 @@ String selectedPassword = "";
 String selectedStopName = "";
 String selectedStopID = "";
 String selectedLine = "";
+String selectedLine2 = "";
 
 float latitudeStop = 52.5170365;
 float longitudeStop = 13.3888599;
 
+bool showLine = false;
 bool showWeatherTime = true;
 
 String wifiOptionsHTML = "";
@@ -59,7 +61,7 @@ void handleRoot() {
   </head>
   <body>
     <h2>WLAN Konfiguration</h2>
-    <p>Hallo! schön das du es hierher geschafft hast. Um die Anzeige zu benutzen ist natürliche eine Internetverbindung nötig. Wähle also bitte unten dein WLAN aus und gebe das Passwort ein. Sollte dein WLAN nicht angezeigt werden, stecke das Display noch einmal vom Strom ab und wieder an. Mache das, wenn möglich, direkt neben dem WLAN-Router.</p>
+    <p>Hallo! Schön das du es hierher geschafft hast. Um die Anzeige zu benutzen ist natürliche eine Internetverbindung nötig. Wähle also bitte unten dein WLAN aus und gebe das Passwort ein. Sollte dein WLAN nicht angezeigt werden, stecke das Display noch einmal vom Strom ab und wieder an. Mache das, wenn möglich, direkt neben dem WLAN-Router.</p>
     <p>Bitte dein WLAN auswählen und das Passwort eingeben:</p>
 
     <form action="/saveWifi" method="POST">
@@ -153,7 +155,8 @@ void handleStopConfig() {
   <body>
     <h2>Station Konfiguration</h2>
     <p>Super! WLAN haben wir schon einmal. Als nächstes musst du angeben zu welcher Station du die Abfahrten angezeigt bekommen haben möchtest. Gebe dafür einen eindeutigen Teil des Stationsnamens ein, damit die Station gefunden werden kann (Bei "Warschauer Straße", würde z.B. "Warschauer" reichen). Bei Tippfehlern kann die Station leider nicht gefunden werden.</p>
-    <p>Du kannst außerdem optional eine bestimmte Linie eingeben. Fahren an der Station mehrere Linien, wird dann nur diese eine Linie angezeigt. Hier ein paar Beispiele wie die Linie geschrieben werden muss: Bus: z.B. "101", "M45", "N2", U-Bahn: z.B. "U1", S-Bahn: z.B. "S3", Tram z.B. "61", "M10", Regio: z.B. "RE1".</p>
+    <p>Du kannst außerdem optional bis zu zwei bestimmte Linie eingeben. Fahren an der Station mehrere Linien, werden nur diese eingegebenen Linien angezeigt. Wenn du hier nichts eingibst, werden alle Linien angezeigt. Hier ein paar Beispiele wie die Linien geschrieben werden müssen: Bus: z.B. "101", "M45", "N2", U-Bahn: z.B. "U1", S-Bahn: z.B. "S3", Tram z.B. "61", "M10", Regio: z.B. "RE1".</p>
+    <p>Unter "Linie anzeigen", kannst du einstellen, ob die Linie auf der Abfahrtsanzeige mit angezeigt werden soll. Das nimmt auf der Anzeige viel Platz weg, so dass der Zielbahnhof kaum zu erkennen ist. Sinnvoll ist das z.B. wenn man sich die S41 und S42 anzeigen lassen möchte, da als Ziel hier sowieso nur "Ringbahn" angezeigt wird.</p>
     <p>Das Display zeigt außerdem standardmäßig die aktuelle Uhrzeit und das Wetter an. Wenn du das nicht möchtest, kannst du die entsprechende Option einfach ausstellen.</p>
 
     <form action="/saveStop" method="POST">
@@ -161,8 +164,14 @@ void handleStopConfig() {
       <label>Station*:</label><br>
       <input type="text" name="stop" required><br><br>
 
-      <label>Linie (optional):</label><br>
+      <label>1. Linie (optional):</label><br>
       <input type="text" name="line"><br><br>
+
+      <label>2. Linie (optional):</label><br>
+      <input type="text" name="line2"><br><br>
+
+      <input type="checkbox" name="showLine" unchecked>
+      Linie anzeigen<br><br>
 
       <input type="checkbox" name="weather" checked>
       Wetter und Uhrzeit anzeigen<br><br>
@@ -293,8 +302,10 @@ bool setStopIDByName(String stopName) {
 void handleSaveStop() {
 
   if (server.hasArg("stop")) selectedStopName = server.arg("stop");
-  if (server.hasArg("line")) selectedLine = server.arg("line");
-  showWeatherTime = server.hasArg("weather");
+  if (server.hasArg("line1")) selectedLine = server.arg("line1");
+  if (server.hasArg("line2")) selectedLine2 = server.arg("line2");
+  if (server.hasArg("showLine")) showLine = server.arg("showLine");
+  if (server.hasArg("weather")) showWeatherTime = server.arg("weather");
 
   bool success = setStopIDByName(selectedStopName);
 
