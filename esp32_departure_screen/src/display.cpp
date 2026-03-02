@@ -168,7 +168,7 @@ void drawStaticText(const String &text, int xStart, int xEnd, VerticalPos vPos, 
   display->print(normalizedText);
 }
 
-
+/*
 // Konstruktor
 ScrollingText::ScrollingText(
     const String &scrollText,
@@ -304,44 +304,4 @@ void ScrollingText::scrollTask(void *param) {
     }
 }
 
-
-void loadingTransition(int steps, int delayTime) {
-  // Schritt 1: Zufällige bunte Rechtecke
-  for (int i = 0; i < steps; i++) {
-    int rectWidth  = random(5, 20);  // zufällige Breite
-    int rectHeight = random(5, 20);  // zufällige Höhe
-    int x = random(0, PANEL_RES_X - rectWidth);
-    int y = random(0, PANEL_RES_Y - rectHeight);
-
-    // Zufällige Farbe
-    uint8_t r = random(0, 256);
-    uint8_t g = random(0, 256);
-    uint8_t b = random(0, 256);
-    uint16_t color = display->color565(r, g, b);
-
-    display->fillRect(x, y, rectWidth, rectHeight, color);
-    delay(delayTime); // Geschwindigkeit des Effekts
-  }
-
-  // Schritt 2: Schwarzes Rechteck aus der Mitte
-  int maxWidth = PANEL_RES_X;
-  int maxHeight = PANEL_RES_Y;
-  int centerX = PANEL_RES_X / 2;
-  int centerY = PANEL_RES_Y / 2;
-
-  for (int i = 0; i <= max(maxWidth, maxHeight); i += 2) {
-    int x = centerX - i / 2;
-    int y = centerY - i / 2;
-    int w = i;
-    int h = i;
-
-    // Begrenzung auf Panelgröße
-    if (x < 0) { w += x; x = 0; }
-    if (y < 0) { h += y; y = 0; }
-    if (x + w > PANEL_RES_X) w = PANEL_RES_X - x;
-    if (y + h > PANEL_RES_Y) h = PANEL_RES_Y - y;
-
-    display->fillRect(x, y, w, h, BLACK);
-    delay(15); // Geschwindigkeit des "Schwarzes Rechteck wächst" Effekts
-  }
-}
+*/

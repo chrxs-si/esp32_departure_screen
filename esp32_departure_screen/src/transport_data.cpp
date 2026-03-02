@@ -5,6 +5,9 @@
 #include "transport_data.h"
 
 Departure departures[MAX_DEPARTURES] = {};
+String BVG_BASE_URL = "https://v6.bvg.transport.rest/stops/";
+String VBB_BASE_URL = "https://v6.vbb.transport.rest/stops/";
+bool useVBB = true;
 
 long isoToRelativeMinutes(const String& isoTime) {
   struct tm tm = {};
@@ -29,19 +32,30 @@ String getDeparturesJson(String stopID) {
     return json;
   }
 
-  String apiURL = "https://v6.vbb.transport.rest/stops/" + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30";
+  String apiURL; 
+  if (useVBB) {
+    apiURL = VBB_BASE_URL + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30&remarks=false";
+  } else {
+    apiURL = BVG_BASE_URL + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30&remarks=false";
+  }
+
   Serial.println("API URL: " + apiURL);
   HTTPClient http;
   http.begin(apiURL);
+  http.setTimeout(10000);
   int httpCode = http.GET();
 
   String json = "";
   if(httpCode > 0) {
     json = http.getString();
     Serial.println("Successful API request.");
+    
   } else {
     json = "{\"message\":\"API error\", \"code\":" + String(httpCode) + "}";
     Serial.println("Fehler bei der API-Anfrage, HTTP Code: " + String(httpCode));
+
+    // andere URL nutzen
+    useVBB = !useVBB;
   }
 
   http.end();
@@ -111,8 +125,9 @@ void updateDepartures() {
 
   if (coloums == 0) {
 
-    if (retryCount < 3) {
+    if (retryCount < 5) {
       retryCount++;
+        Serial.println("Keine Abfahrten gefunden. Retry: " + String(retryCount));
       return;
     }
 
@@ -147,11 +162,11 @@ void updateDepartures() {
     } 
 
     if (showWeatherTime) {
-      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
       drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     } else {
-      drawStaticText(dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
       drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     }
   }
 }

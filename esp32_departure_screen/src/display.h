@@ -9,7 +9,7 @@ extern MatrixPanel_I2S_DMA *display;
 // Panel Konfiguration
 #define PANEL_RES_X 64      // Breite des Panels
 #define PANEL_RES_Y 32      // Höhe des Panels
-#define PANEL_CHAIN 1       // Anzahl der Panels (verkettet)
+#define PANEL_CHAIN 2       // Anzahl der Panels (verkettet)
 
 // Grundfarben
 extern uint16_t DEPARTURE_COLOR;
@@ -60,6 +60,7 @@ void drawStaticText(const String &text, int xStart = 0, int xEnd = PANEL_RES_X, 
 
 void loadingTransition(int steps = 70, int delayTime = 40);
 
+/*
 class ScrollingText {
 public:
     ScrollingText(const String &scrollText, int xStartPos, int xEndPos, 
@@ -82,5 +83,5 @@ private:
     int minGap;
     TaskHandle_t taskHandle = nullptr;
 };
-
+*/
 #endif

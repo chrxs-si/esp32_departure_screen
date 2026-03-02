@@ -111,8 +111,8 @@ void updateWeatherIcon(int weatherCode, bool isDay) {
 
   switch (weatherCode) {
     case 0: // Klar
-      drawSun(PANEL_RES_X - 6, 4, 3, YELLOW);
-      if (!isDay) { drawSun(PANEL_RES_X - 8, 4, 2, BLACK); }
+      drawSun(PANEL_RES_X - 6, 3, 3, YELLOW);
+      if (!isDay) { drawSun(PANEL_RES_X - 8, 3, 2, BLACK); }
       break;
     case 1: // kaum bewölkt
       drawSun(PANEL_RES_X - 3, 3, 2, YELLOW);

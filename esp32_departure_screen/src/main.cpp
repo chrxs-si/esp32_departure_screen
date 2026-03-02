@@ -13,7 +13,6 @@
 // API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
 //Useless Facts API: https://uselessfacts.jsph.pl/api/v2/facts/random?language=de
 
-ScrollingText *line1text;
 Clock myClock;
 
 void updateTemprature(int temp) {
@@ -39,7 +38,7 @@ void updateBrightness(bool is_day) {
    if (is_day) {
     display->setBrightness8(100);
   } else {
-    display->setBrightness8(50);
+    display->setBrightness8(60);
   }
 }
 
@@ -65,9 +64,6 @@ void updateSystemTime() {
   tzset();
 }
 
-void updateScrollingText() {
-
-}
 
 void setup() {
   Serial.begin(115200);
@@ -84,9 +80,6 @@ void setup() {
     selectedPassword = "motivoli5";
 
     connectToWifi(selectedSSID, selectedPassword);
-    delay(1000);
-    updateWeather();
-    updateDepartures();
   }
   else {
     Config();
@@ -101,18 +94,19 @@ void setup() {
   }
   Serial.println("WiFi connected.");
 
-  //line1text = new ScrollingText("Hallo Kai!! Es ist bald 15 Uhr!", 0, PANEL_RES_X, ROW_4, PURPLE, 1, 80, 8);
-  //line1text->start();
-
   if (showWeatherTime) {
     myClock.start();
   }
+
+  updateSystemTime();
+  updateWeather();
+  updateDepartures();
 }
 
 int lastUpdate = millis();
 int departureSecondsCounter = 999999;
 int weatherSecondsCounter = 999999;
-int ScrollingTextSecondsCounter = 999999;
+int SystemTimeSecondsCounter = 999999;
 
 void loop() {
 
@@ -124,7 +118,7 @@ void loop() {
 
     departureSecondsCounter += 1;
     weatherSecondsCounter += 1;
-    ScrollingTextSecondsCounter += 1;
+    SystemTimeSecondsCounter += 1;
 
   }
 
@@ -140,9 +134,8 @@ void loop() {
     }
   }
 
-  if (ScrollingTextSecondsCounter >= 21000) { // alle 6 Stunden
-    ScrollingTextSecondsCounter = 0;
-    updateScrollingText();
+  if (SystemTimeSecondsCounter >= 21000) { // alle 6 Stunden
+    SystemTimeSecondsCounter = 0;
     updateSystemTime(); // Systemzeit alle 6 Stunden aktualisieren, um Drift zu vermeiden
   }
 }
