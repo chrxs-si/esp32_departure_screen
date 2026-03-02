@@ -9,7 +9,7 @@ extern MatrixPanel_I2S_DMA *display;
 // Panel Konfiguration
 #define PANEL_RES_X 64      // Breite des Panels
 #define PANEL_RES_Y 32      // Höhe des Panels
-#define PANEL_CHAIN 2       // Anzahl der Panels (verkettet)
+#define PANEL_CHAIN 1       // Anzahl der Panels (verkettet)
 
 // Grundfarben
 extern uint16_t DEPARTURE_COLOR;
