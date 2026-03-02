@@ -57,7 +57,7 @@ void Clock::clockTask(void *param) {
 
     while (true) {
         self->drawTime();
-        vTaskDelay(pdMS_TO_TICKS(1000)); // jede Sekunde aktualisieren
+        vTaskDelay(pdMS_TO_TICKS(3000)); // jede 3 Sekunden aktualisieren
     }
 }
 

@@ -152,8 +152,10 @@ void updateDepartures() {
     }
 
     // Länge begrenzen
-    if (dest.length() > MAX_DEST_LEN) {
-      dest = dest.substring(0, MAX_DEST_LEN);
+    int dest_len = MAX_DEST_LEN;
+    if (showLine) {dest_len -= MAX_LINE_LEN;}
+    if (dest.length() > dest_len) {
+      dest = dest.substring(0, dest_len);
     }
 
     String lineString = "";
