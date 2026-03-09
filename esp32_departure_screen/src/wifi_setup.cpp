@@ -34,8 +34,8 @@ void scanWIFIOptions() {
   wifiOptionsHTML = "";
   
   display->clearScreen();
-  drawStaticText("scanne", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("scanne", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("WLAN", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -99,8 +99,8 @@ void handleSaveWifi() {
   if (server.hasArg("password")) selectedPassword = server.arg("password");
 
   display->clearScreen();
-  drawStaticText("verbinde", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("verbinde", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("WLAN", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
 
   connectToWifi(selectedSSID, selectedPassword);
 
@@ -112,33 +112,33 @@ void handleSaveWifi() {
 
   if (WiFi.status() != WL_CONNECTED) {
     display->clearScreen();
-    drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, RED, 1);
-    drawStaticText("Fehler!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, RED, 1);
+    drawStaticText("WLAN", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, RED, 1);
+    drawStaticText("Fehler!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, RED, 1);
 
     server.sendHeader("Location", "/", true);
     server.send(302, "text/plain", "");
 
     delay(4000);
     display->clearScreen();
-    drawStaticText("WLAN:", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
-    drawStaticText(espSSID, 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
-    drawStaticText("Passwort:", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, WHITE, 1);
-    drawStaticText(espPassword, 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, RED, 1);
+    drawStaticText("WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
+    drawStaticText(espSSID, 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
+    drawStaticText("Passwort:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
+    drawStaticText(espPassword, 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, RED, 1);
 
     return;
   }
 
   display->clearScreen();
-  drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
-  drawStaticText("verbunden!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("WLAN", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("verbunden!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, GREEN, 1);
 
   server.sendHeader("Location", "/configStop", true);
   server.send(302, "text/plain", "");
 
   delay(4000);
   display->clearScreen();
-  drawStaticText("Station", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("eingeben!", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("Station", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("eingeben!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
 }
 
 /* ======================= SEITE 2 ========================= */
@@ -180,7 +180,10 @@ void handleStopConfig() {
     </form>
   </body>
   </html>
-  )rawliteral";
+  )rawliteral"; 
+
+  // TODO: "offset" implementieren. Abfahrt wird nur angezeigt, falls sie länger als Offset ist. Bsp. offset=5 min, Anfahrt in 4min, Abfahrt wird nicht mehr angezeigt
+  // TODO: WLAN bleibt offen. Weitere Seite leitet durch BUtton entweder zurück auf Konfigurationsseite oder schaltet eigenes Wlan aus.
 
   server.send(200, "text/html", page);
 }
@@ -210,8 +213,8 @@ String extractStationID(const String& rawId) {
 
 bool setStopIDByName(String stopName) {
     display->clearScreen();
-  drawStaticText("suche", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("Station", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("suche", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("Station", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
   delay(2000);
 
   String apiURL = "https://v6.bvg.transport.rest/stops?query=" + stopName;
@@ -227,9 +230,9 @@ bool setStopIDByName(String stopName) {
   } else {
     display->clearScreen();
     display->clearScreen();
-    drawStaticText("Netzwerk", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, RED, 1);
-    drawStaticText("Fehler!", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
-    drawStaticText("Neustart!", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Netzwerk", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, RED, 1);
+    drawStaticText("Fehler!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
+    drawStaticText("Neustart!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, WHITE, 1);
 
     Serial.println("Fehler bei der API-Anfrage, HTTP Code: " + String(httpCode));
     return false;
@@ -241,9 +244,9 @@ bool setStopIDByName(String stopName) {
   DeserializationError error = deserializeJson(doc, json);
   if (error) {
     display->clearScreen();
-    drawStaticText("Daten", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, RED, 1);
-    drawStaticText("Fehler!", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
-    drawStaticText("Neustart!", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Daten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, RED, 1);
+    drawStaticText("Fehler!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
+    drawStaticText("Neustart!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, WHITE, 1);
 
     Serial.print("JSON Fehler: " + String(error.c_str()));
     return false;
@@ -252,17 +255,17 @@ bool setStopIDByName(String stopName) {
   JsonObject firstStop = doc[0];
   if (firstStop.isNull()) {
     display->clearScreen();
-    drawStaticText("keine", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, RED, 1);
-    drawStaticText("Station", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
-    drawStaticText("gefunden!", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, RED, 1);
+    drawStaticText("keine", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, RED, 1);
+    drawStaticText("Station", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
+    drawStaticText("gefunden!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, RED, 1);
 
     Serial.println("Keine Station gefunden");
 
     delay(4000);
     display->clearScreen();
-    drawStaticText("Station", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
-    drawStaticText("erneut", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, WHITE, 1);
-    drawStaticText("eingeben!", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Station", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("erneut", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("eingeben!", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
 
     return false;
   }
@@ -290,9 +293,9 @@ bool setStopIDByName(String stopName) {
   http.end();
 
   display->clearScreen();
-  drawStaticText("Station", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, GREEN, 1);
-  drawStaticText("gefundne:", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, GREEN, 1);
-  drawStaticText(selectedStopName, 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+  drawStaticText("Station", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, GREEN, 1);
+  drawStaticText("gefundne:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, GREEN, 1);
+  drawStaticText(selectedStopName, 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 
   delay(5000);
   display->clearScreen();
@@ -321,16 +324,16 @@ void handleSaveStop() {
 
   inConfigMode = false;
 
-  drawStaticText("Lade", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-  drawStaticText("Daten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+  drawStaticText("Lade", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+  drawStaticText("Daten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 }
 
 /* ======================= AP START ========================= */
 
 void startAP() {
   display->clearScreen();
-  drawStaticText("starte", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("WLAN", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("starte", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("WLAN", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
 
   WiFi.mode(WIFI_AP);
   WiFi.softAP(espSSID.c_str(), espPassword.c_str());
@@ -364,8 +367,8 @@ void Config() {
   inConfigMode = true;
 
   display->clearScreen();
-  drawStaticText("starte", 0, PANEL_RES_X, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("SETUP", 0, PANEL_RES_X, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("starte", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("SETUP", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
   delay(2000);
 
   scanWIFIOptions();
@@ -373,10 +376,10 @@ void Config() {
   setupAP();
 
   display->clearScreen();
-  drawStaticText("WLAN:", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, WHITE, 1);
-  drawStaticText(espSSID, 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, RED, 1);
-  drawStaticText("Passwort:", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, WHITE, 1);
-  drawStaticText(espPassword, 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, RED, 1);
+  drawStaticText("WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
+  drawStaticText(espSSID, 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
+  drawStaticText("Passwort:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
+  drawStaticText(espPassword, 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, RED, 1);
 
   while (inConfigMode) {
     dnsServer.processNextRequest();

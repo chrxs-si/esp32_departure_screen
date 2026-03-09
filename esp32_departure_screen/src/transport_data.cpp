@@ -132,11 +132,11 @@ void updateDepartures() {
     }
 
     if (!showWeatherTime) {
-      drawStaticText("", 0, PANEL_RES_X, ROW_1, ALIGN_CENTER, BLACK, 1);
+      drawStaticText("", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, BLACK, 1);
     }
-    drawStaticText("Keine", 0, PANEL_RES_X, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-    drawStaticText("Abfahrten", 0, PANEL_RES_X, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-    drawStaticText("", 0, PANEL_RES_X, ROW_4, ALIGN_CENTER, BLACK, 1);
+    drawStaticText("Keine", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText("Abfahrten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText("", 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, BLACK, 1);
     return;
   }
 
@@ -164,11 +164,11 @@ void updateDepartures() {
     } 
 
     if (showWeatherTime) {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
-      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     } else {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X - 12, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
-      drawStaticText(lineString + dest, 0, PANEL_RES_X - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     }
   }
 }
