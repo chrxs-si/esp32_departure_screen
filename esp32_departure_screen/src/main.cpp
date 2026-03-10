@@ -78,6 +78,7 @@ void Intro() {
     display->clearScreen();
 }
 
+// --- SETUP ---
 void setup() {
   Serial.begin(115200);
   Serial.println("starte setup...");
@@ -85,33 +86,26 @@ void setup() {
 
   randomSeed(esp_random()); 
 
-  //loadingTransition(70);
-  if (false) {
-    selectedStopID = "900001201";
-    selectedLine = "S42";
-    selectedSSID = "MotivNet";
-    selectedPassword = "motivoli5";
+  Intro();
+  
+  // Startet den gesamten Konfigurations- und Verbindungsablauf
+  Config();
 
-    connectToWifi(selectedSSID, selectedPassword);
-  }
-  else {
-    Intro();
-    Config();
-  }
   Serial.println("setup fertig.");
-
 }
 
+// --- FINISH SETUP ---
 void finishSetup() {
-  //wait for wifi connection
+  // Warten auf WLAN Verbindung
   int retrys = 0;
-  while (WiFi.status() != WL_CONNECTED)
-  {
+  while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print("No wifi connection yet...");
 
     if (retrys > 15) {
-      Config();
+      Serial.println("WLAN Verbindung fehlgeschlagen. Starte Config neu.");
+      Config(); 
+      return; // Verhindert weitere Ausführung in dieser Instanz
     }
     retrys += 1;
   }
@@ -135,6 +129,8 @@ int weatherSecondsCounter = 999999;
 int SystemTimeSecondsCounter = 999999;
 
 void loop() {
+
+  handleBackgroundWLAN();
 
   unsigned long now = millis();
 

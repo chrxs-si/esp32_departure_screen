@@ -28,5 +28,6 @@ extern bool showWeatherTime;
 void Config();
 void connectToWifi(String ssid, String password);
 void scanWIFIOptions();
+void handleBackgroundWLAN();
 
 #endif
