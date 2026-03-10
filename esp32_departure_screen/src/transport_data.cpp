@@ -156,7 +156,9 @@ void updateDepartures() {
         "(Berlin)",
         "(bei Berlin)",
         "⟲",
-        "⟳"
+        "⟳",
+        "S41",
+        "S42"
     };
     const int endingCount = sizeof(endings) / sizeof(endings[0]);
 

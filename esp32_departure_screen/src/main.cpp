@@ -71,7 +71,7 @@ void Intro() {
     delay(3000);
 
     display->clearScreen();
-    drawStaticText("Schön,", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Toll,", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
     drawStaticText("dass du da bist!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
     delay(5000);
 
@@ -104,12 +104,20 @@ void setup() {
 
 void finishSetup() {
   //wait for wifi connection
+  int retrys = 0;
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(1000);
     Serial.print("No wifi connection yet...");
+
+    if (retrys > 15) {
+      Config();
+    }
+    retrys += 1;
   }
   Serial.println("WiFi connected.");
+
+  display->clearScreen();
 
   if (showWeatherTime) {
     myClock.stop();

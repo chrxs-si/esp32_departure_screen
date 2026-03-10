@@ -1,6 +1,9 @@
 #include "wifi_setup.h"
 #include "display.h"
 #include "main.h"
+#include <Preferences.h>
+
+Preferences prefs;
 
 #define DNS_PORT 53
 
@@ -30,6 +33,38 @@ bool showWeatherTime = true;
 String wifiOptionsHTML = "";
 
 /* ========================================================= */
+
+bool loadSettings() {
+
+  prefs.begin("config", true);
+
+  inConfigMode = prefs.getBool("configMode", false);
+
+  espSSID = prefs.getString("esp_ssid", espSSID);
+  espPassword = prefs.getString("esp_pass", espPassword);
+
+  selectedSSID = prefs.getString("ssid", "");
+  selectedPassword = prefs.getString("pass", "");
+
+  selectedStopName = prefs.getString("stopName", "");
+  selectedStopID = prefs.getString("stopID", "");
+
+  selectedLine = prefs.getString("line1", "");
+  selectedLine2 = prefs.getString("line2", "");
+
+  showLine = prefs.getBool("showLine", false);
+  showWeatherTime = prefs.getBool("weather", true);
+
+  latitudeStop = prefs.getFloat("lat", 0);
+  longitudeStop = prefs.getFloat("lon", 0);
+
+  prefs.end();
+
+  if (selectedSSID == "" || selectedPassword == "" || selectedStopID == "" || inConfigMode == false)
+    return false;
+
+  return true;
+}
 
 void scanWIFIOptions() {
   wifiOptionsHTML = "";
@@ -121,7 +156,7 @@ void handleSaveWifi() {
 
     delay(4000);
     display->clearScreen();
-    drawStaticText("WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Display-WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
     drawStaticText(espSSID, 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
     drawStaticText("Passwort:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
     drawStaticText(espPassword, 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, RED, 1);
@@ -303,6 +338,33 @@ bool setStopIDByName(String stopName) {
   return true;
 }
 
+void saveSettings() {
+
+  prefs.begin("config", false);
+
+  prefs.putString("esp_ssid", espSSID);
+  prefs.putString("esp_pass", espPassword);
+
+  prefs.putString("ssid", selectedSSID);
+  prefs.putString("pass", selectedPassword);
+
+  prefs.putString("stopName", selectedStopName);
+  prefs.putString("stopID", selectedStopID);
+
+  prefs.putString("line1", selectedLine);
+  prefs.putString("line2", selectedLine2);
+
+  prefs.putBool("showLine", showLine);
+  prefs.putBool("weather", showWeatherTime);
+
+  prefs.putFloat("lat", latitudeStop);
+  prefs.putFloat("lon", longitudeStop);
+
+  prefs.putBool("configMode", inConfigMode);
+
+  prefs.end();
+}
+
 void handleSaveStop() {
 
   if (server.hasArg("stop")) selectedStopName = server.arg("stop");
@@ -355,11 +417,15 @@ void handleSaveStop() {
   drawStaticText("Lade", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
   drawStaticText("Daten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
 
+  saveSettings();
+
   finishSetup();
 }
 
 void deactivateConfigMode() {
   inConfigMode = false;
+
+  saveSettings();
 
   server.send(200, "text/html",
     "<html><body><h3>WLAN wird geschlossen! </h3>"
@@ -380,12 +446,16 @@ void startAP() {
 
 /* ======================= SETUP AP ========================= */
 
-void setupAP() {
+void setupAP(bool firstStart) {
 
   IPAddress apIP = WiFi.softAPIP();
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  server.on("/", handleRoot);
+  if (firstStart) {
+    server.on("/", handleRoot);
+  } else {
+    server.on("/", handleStopConfig);
+  }
   server.on("/saveWifi", HTTP_POST, handleSaveWifi);
   server.on("/configStop", handleStopConfig);
   server.on("/saveStop", HTTP_POST, handleSaveStop);
@@ -399,31 +469,70 @@ void setupAP() {
   server.begin();
 }
 
+bool connectStoredWifi() {
+
+  if (selectedSSID == "" || selectedPassword == "")
+    return false;
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(selectedSSID.c_str(), selectedPassword.c_str());
+
+  unsigned long start = millis();
+
+  while (WiFi.status() != WL_CONNECTED &&
+         millis() - start < 8000) {
+    delay(200);
+  }
+
+  return WiFi.status() == WL_CONNECTED;
+}
+
 /* ======================= CONFIG START ========================= */
 
 void Config() {
 
+  bool hasConfig = loadSettings();
+
   inConfigMode = true;
 
-  display->clearScreen();
-  drawStaticText("starte", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
-  drawStaticText("SETUP", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
-  delay(2000);
+  if (hasConfig) {
+    display->clearScreen();
+    drawStaticText("Lade", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Einstellungen", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+    delay(2000);
+  } else {
+    display->clearScreen();
+    drawStaticText("starte", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("SETUP", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+    delay(2000);
 
-  scanWIFIOptions();
+    scanWIFIOptions();
+  }
+
   startAP();
-  setupAP();
+  setupAP(!hasConfig);
 
   display->clearScreen();
-  drawStaticText("WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
+  drawStaticText("Display-WLAN:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, WHITE, 1);
   drawStaticText(espSSID, 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, RED, 1);
   drawStaticText("Passwort:", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
   drawStaticText(espPassword, 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, RED, 1);
+
+  if (hasConfig) {
+
+    delay(7000);
+
+    if (connectStoredWifi()) {
+      finishSetup();
+    }
+  }
 
   while (inConfigMode) {
     dnsServer.processNextRequest();
     server.handleClient();
   }
 
-  WiFi.softAPdisconnect(true);
+  if (!inConfigMode) {
+    WiFi.softAPdisconnect(true);
+  }
 }
