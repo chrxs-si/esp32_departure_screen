@@ -1,5 +1,6 @@
 #include "wifi_setup.h"
 #include "display.h"
+#include "main.h"
 
 #define DNS_PORT 53
 
@@ -170,7 +171,7 @@ void handleStopConfig() {
       <label>2. Linie (optional):</label><br>
       <input type="text" name="line2"><br><br>
 
-      <input type="checkbox" name="showLine" unchecked>
+      <input type="checkbox" name="showLine" checked>
       Linie anzeigen<br><br>
 
       <input type="checkbox" name="weather" checked>
@@ -318,14 +319,51 @@ void handleSaveStop() {
     return;
   }
 
-  server.send(200, "text/html",
-    "<html><body><h3>Station gefunden! :)</h3>"
-    "<a href='/configStop'>Zurück</a></body></html>");
+  String page = R"rawliteral(
+  <!DOCTYPE html>
+  <html>
+  <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Konfiguration abgeschlossen!</title>
 
-  inConfigMode = false;
+  </head>
+  <body>
+  <h1>Konfiguration erfolgreich abgeschlossen!</h1>
 
+  <p>Du kannst das WLAN jetzt offen lassen und jederzeit die Haltestelle und andere Einstellungen ändern. Klicke dafür einfach auf "Konfiguration ändern".</p>
+  <p>Beendest du das WLAN, kannst du später durch beenden der Stromverbindung, die Konfiguration neu starten. Dann kannst du auch ein neues WLAN konfigurieren.</p>
+
+  <br>
+
+  <form action="/configStop">
+    <button type="submit">Konfiguration ändern</button>
+  </form>
+
+  <br>
+
+  <form action="/closeWLAN" method="POST">
+    <button type="submit">WLAN schließen</button>
+  </form>
+
+  </body>
+  </html>
+  )rawliteral";
+
+  server.send(200, "text/html", page);
+
+  display->clearScreen();
   drawStaticText("Lade", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
   drawStaticText("Daten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+
+  finishSetup();
+}
+
+void deactivateConfigMode() {
+  inConfigMode = false;
+
+  server.send(200, "text/html",
+    "<html><body><h3>WLAN wird geschlossen! </h3>"
+    "<a href='/configStop'>Zurück</a></body></html>");
 }
 
 /* ======================= AP START ========================= */
@@ -351,6 +389,7 @@ void setupAP() {
   server.on("/saveWifi", HTTP_POST, handleSaveWifi);
   server.on("/configStop", handleStopConfig);
   server.on("/saveStop", HTTP_POST, handleSaveStop);
+  server.on("/closeWLAN", HTTP_POST, deactivateConfigMode);
 
   server.onNotFound([]() {
     server.sendHeader("Location", String("http://") + WiFi.softAPIP().toString(), true);

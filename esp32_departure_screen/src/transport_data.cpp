@@ -150,9 +150,29 @@ void updateDepartures() {
     if (pos != -1 && pos < 4) {
         dest = dest.substring(pos + 1);
     }
+    
+    // Liste mit Endungen die Abgeschnitten werden
+    const char* endings[] = {
+        "(Berlin)",
+        "(bei Berlin)",
+        "⟲",
+        "⟳"
+    };
+    const int endingCount = sizeof(endings) / sizeof(endings[0]);
+
+    // Endungen prüfen und entfernen
+    for (int i = 0; i < endingCount; i++) {
+        String endStr = String(endings[i]);
+
+        if (dest.endsWith(endStr)) {
+            dest = dest.substring(0, dest.length() - endStr.length());
+            break;
+        }
+    }
 
     // Länge begrenzen
-    int dest_len = MAX_DEST_LEN;
+    int dest_len = MAX_DEST_LEN_1_PANEL;
+    if (PANEL_CHAIN == 2) dest_len = MAX_DEST_LEN_2_PANEL;
     if (showLine) {dest_len -= MAX_LINE_LEN;}
     if (dest.length() > dest_len) {
       dest = dest.substring(0, dest_len);
@@ -164,10 +184,10 @@ void updateDepartures() {
     } 
 
     if (showWeatherTime) {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
       drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     } else {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
       drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     }
   }

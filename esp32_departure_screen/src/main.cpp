@@ -31,7 +31,7 @@ void updateTemprature(int temp) {
     textColor = RED;
   }
 
-  drawStaticText(String(temp) + String("C"), PANEL_RES_X - 35, PANEL_RES_X - 11, ROW_1, ALIGN_RIGHT, textColor, 1);
+  drawStaticText(String(temp) + String("C"), PANEL_RES_X * PANEL_CHAIN - 35, PANEL_RES_X * PANEL_CHAIN - 11, ROW_1, ALIGN_RIGHT, textColor, 1);
 }
 
 void updateBrightness(bool is_day) {
@@ -64,6 +64,19 @@ void updateSystemTime() {
   tzset();
 }
 
+void Intro() {
+    display->clearScreen();
+    drawStaticText("HALLO!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
+
+    delay(3000);
+
+    display->clearScreen();
+    drawStaticText("Schön,", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_ABOVE, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("dass du da bist!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER_BELOW, ALIGN_CENTER, WHITE, 1);
+    delay(5000);
+
+    display->clearScreen();
+}
 
 void setup() {
   Serial.begin(115200);
@@ -82,10 +95,14 @@ void setup() {
     connectToWifi(selectedSSID, selectedPassword);
   }
   else {
+    Intro();
     Config();
   }
   Serial.println("setup fertig.");
 
+}
+
+void finishSetup() {
   //wait for wifi connection
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -95,6 +112,7 @@ void setup() {
   Serial.println("WiFi connected.");
 
   if (showWeatherTime) {
+    myClock.stop();
     myClock.start();
   }
 

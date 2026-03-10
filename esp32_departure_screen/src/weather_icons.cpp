@@ -27,7 +27,7 @@ void rainTask(void *pvParameters) {
   int rainFrame = 0;          
   const TickType_t delayTicks = rainDelayMs / portTICK_PERIOD_MS;
 
-  const int centerX = PANEL_RES_X - 5; // echte Mitte der Regenstreifen
+  const int centerX =  PANEL_RES_X * PANEL_CHAIN - 5; // echte Mitte der Regenstreifen
   const int rainStartY = 4;
 
   const int spacing = 2;
@@ -85,7 +85,7 @@ void stopRainTask() {
   }
 
   // Regenbereich löschen
-  display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
+  display->fillRect( PANEL_RES_X * PANEL_CHAIN - 12, 0, 12, 8, BLACK);
 }
 
 // Kleine Wolke rechts oben mit Sonne dahinter, max. 8 Pixel hoch
@@ -107,99 +107,99 @@ void cloudWithSun(int cloudX, int cloudY, uint16_t cloudColor, uint16_t sunColor
 void updateWeatherIcon(int weatherCode, bool isDay) {
   stopRainTask();
 
-  display->fillRect(PANEL_RES_X - 12, 0, 12, 8, BLACK);
+  display->fillRect( PANEL_RES_X * PANEL_CHAIN - 12, 0, 12, 8, BLACK);
 
   switch (weatherCode) {
     case 0: // Klar
-      drawSun(PANEL_RES_X - 6, 3, 3, YELLOW);
-      if (!isDay) { drawSun(PANEL_RES_X - 8, 3, 2, BLACK); }
+      drawSun( PANEL_RES_X * PANEL_CHAIN - 6, 3, 3, YELLOW);
+      if (!isDay) { drawSun( PANEL_RES_X * PANEL_CHAIN - 8, 3, 2, BLACK); }
       break;
     case 1: // kaum bewölkt
-      drawSun(PANEL_RES_X - 3, 3, 2, YELLOW);
-      if (!isDay) { drawSun(PANEL_RES_X - 5, 3, 2, BLACK); }
-      drawCloud(PANEL_RES_X - 10, 3, WHITE);
+      drawSun( PANEL_RES_X * PANEL_CHAIN - 3, 3, 2, YELLOW);
+      if (!isDay) { drawSun( PANEL_RES_X * PANEL_CHAIN - 5, 3, 2, BLACK); }
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 3, WHITE);
       break;
     case 2: // mittel Bewölkt
-      drawSun(PANEL_RES_X - 3, 2, 1, YELLOW);
-      if (!isDay) { drawSun(PANEL_RES_X - 5, 2, 1, BLACK); }
-      drawCloud(PANEL_RES_X - 10, 2, WHITE);
+      drawSun( PANEL_RES_X * PANEL_CHAIN - 3, 2, 1, YELLOW);
+      if (!isDay) { drawSun( PANEL_RES_X * PANEL_CHAIN - 5, 2, 1, BLACK); }
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 2, WHITE);
       break;
     case 3: // Bewölkt
     case 45: // fog
     case 48: // Fog and depositing rime fog
-      drawCloud(PANEL_RES_X - 10, 2, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 2, WHITE);
       break;
 
     case 51: // leichter Nieselregen
     case 56: // leicher eiskalter Nieselregen
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(1, 180, 1, BLUE);
       break;
     case 53: // mittlerer Nieselregen
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(2, 150, 1, BLUE);
       break;
     case 55: // starker Nieselregen
     case 57: // starker eiskalter Nieselregen
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(3, 120, 1, BLUE);
       break;
 
     case 61: // leichter Regen
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(2, 180, 2, BLUE);
       break;
     case 63: // mittlerer Regen
     case 66: // light freezing Rain
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(3, 150, 2, BLUE);
       break;
     case 65: // starker Regen
     case 67: // heavy freezing Rain
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(4, 120, 2, BLUE);
       break;
 
     case 71: // leichter Schnee
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(2, 550, 1, LIGHTBLUE);
       break;
     case 73: // mittlerer Schnee
     case 77: // Schneekörner
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(3, 500, 1, LIGHTBLUE);
       break;
     case 75: // starker Schnee
-      drawCloud(PANEL_RES_X - 10, 0, WHITE);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, WHITE);
       startRainTask(4, 450, 1, LIGHTBLUE);
       break;
 
     case 80: // slight rain shower
-      drawCloud(PANEL_RES_X - 10, 0, GRAY);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, GRAY);
       startRainTask(2, 180, 2, BLUE);
       //Blitz
       break;
     case 81: // moderate rain shower
     case 95: // Thunderstorm
-      drawCloud(PANEL_RES_X - 10, 0, GRAY);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, GRAY);
       startRainTask(3, 150, 2, BLUE);
       //Blitz
       break;
     case 82: // violent rain shower
-      drawCloud(PANEL_RES_X - 10, 0, GRAY);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, GRAY);
       startRainTask(4, 120, 2, BLUE);
       //Blitz
       break;
 
     case 85: // slight snow shower
     case 96: // Thunderstorm with slight hail
-      drawCloud(PANEL_RES_X - 10, 0, GRAY);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, GRAY);
       startRainTask(3, 250, 1, LIGHTBLUE);
       //Blitz
       break;
     case 86: // heavy snow shower
     case 99: // Thunderstorm with slight hail
-      drawCloud(PANEL_RES_X - 10, 0, GRAY);
+      drawCloud( PANEL_RES_X * PANEL_CHAIN - 10, 0, GRAY);
       startRainTask(4, 200, 1, LIGHTBLUE);
       //Blitz
       break;
