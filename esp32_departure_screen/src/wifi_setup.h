@@ -18,6 +18,11 @@ extern String selectedStopID;
 extern String selectedLine;
 extern String selectedLine2;
 
+extern int offsetMin; 
+
+extern String displayColorName;
+extern String timeColorName;
+
 extern float latitudeStop;
 extern float longitudeStop;
 
@@ -29,5 +34,6 @@ void Config();
 void connectToWifi(String ssid, String password);
 void scanWIFIOptions();
 void handleBackgroundWLAN();
+uint16_t getDisplayColorFromString(String colorName);
 
 #endif

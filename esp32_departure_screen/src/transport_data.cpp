@@ -32,11 +32,15 @@ String getDeparturesJson(String stopID) {
     return json;
   }
 
+  time_t now;
+  time(&now);
+  time_t targetTime = now + 12 + (offsetMin * 60); // 12 Sekunden addieren, damit keine negativen Abfahrtswerte entstehen
+
   String apiURL; 
   if (useVBB) {
-    apiURL = VBB_BASE_URL + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30&remarks=false";
+    apiURL = VBB_BASE_URL + stopID + "/departures?results=" + String(MAX_DEPARTURES) + "&duration=30&remarks=false&when=" + String(targetTime);
   } else {
-    apiURL = BVG_BASE_URL + stopID + "/departures?results=" + MAX_DEPARTURES + "&duration=30&remarks=false";
+    apiURL = BVG_BASE_URL + stopID + "/departures?results=" + String(MAX_DEPARTURES) + "&duration=30&remarks=false&when=" + String(targetTime);
   }
 
   Serial.println("API URL: " + apiURL);
@@ -84,8 +88,9 @@ int parseDepartures(String json, String lineFilter1, String lineFilter2, Departu
         const char* lineName = dep["line"]["name"] | "?";
         const char* dest     = dep["direction"] | "?";
         const char* when     = dep["when"] | "?";
+        bool cancelled = dep["cancelled"] | false;
 
-        if (!lineName[0] || !dest[0] || !when[0]) continue;
+        if (!lineName[0] || !dest[0] || !when[0] || cancelled) continue;
 
         bool useLineFilter1 = lineFilter1 && lineFilter1 != "";
         bool useLineFilter2 = lineFilter2 && lineFilter2 != "";

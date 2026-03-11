@@ -57,7 +57,7 @@ void Clock::clockTask(void *param) {
 
     while (true) {
         self->drawTime();
-        vTaskDelay(pdMS_TO_TICKS(3000)); // jede 3 Sekunden aktualisieren
+        vTaskDelay(pdMS_TO_TICKS(5000)); // jede 3 Sekunden aktualisieren
     }
 }
 
@@ -87,5 +87,5 @@ void Clock::drawTime() {
     }
 
     //drawStaticText(currentTime, x, x + textWidth, vPos, align, LIGHTBLUE, 1);
-    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, BLUE, 1);
+    drawStaticText(currentTime, 0, 30, ROW_1, ALIGN_LEFT, CLOCK_COLOR, 1);
 }

@@ -13,6 +13,7 @@ extern MatrixPanel_I2S_DMA *display;
 
 // Grundfarben
 extern uint16_t DEPARTURE_COLOR;
+extern uint16_t CLOCK_COLOR;
 extern uint16_t BLACK;
 extern uint16_t WHITE;
 extern uint16_t RED;

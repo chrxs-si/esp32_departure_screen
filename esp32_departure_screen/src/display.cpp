@@ -2,6 +2,7 @@
 #include <time.h>
 
 uint16_t DEPARTURE_COLOR;
+uint16_t CLOCK_COLOR;
 uint16_t BLACK;
 uint16_t WHITE;
 uint16_t RED;
@@ -59,7 +60,6 @@ void initDisplay() {
   display->begin();
   display->setBrightness8(100);
 
-  DEPARTURE_COLOR  = display->color565(255, 165, 0);
   BLACK   = display->color565(0, 0, 0);
   WHITE   = display->color565(255, 255, 255);
   RED     = display->color565(255, 0, 0);
@@ -76,6 +76,9 @@ void initDisplay() {
   LIGHTGRAY = display->color565(192, 192, 192);
   DARKGREEN = display->color565(0, 255, 0);
   LIGHTBLUE = display->color565(173, 216, 230);
+
+  DEPARTURE_COLOR  = ORANGE;
+  CLOCK_COLOR  = BLUE;
 }
 
 String normalizeUmlauts(String text) {

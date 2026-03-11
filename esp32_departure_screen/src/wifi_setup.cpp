@@ -1,6 +1,7 @@
 #include "wifi_setup.h"
 #include "display.h"
 #include "main.h"
+#include "weather_icons.h"
 #include <Preferences.h>
 #include <WiFi.h>
 #include <WebServer.h>
@@ -30,11 +31,16 @@ String selectedStopID = "";
 String selectedLine = "";
 String selectedLine2 = "";
 
+int offsetMin = 0; 
+
+String displayColorName = "ORANGE";
+String timeColorName = "BLUE";
+
 float latitudeStop = 52.5170365;
 float longitudeStop = 13.3888599;
 
-bool showLine = false;
-bool showWeatherTime = true;
+bool showLine = true;
+bool showWeatherTime = false;
 
 String wifiOptionsHTML = "";
 
@@ -62,8 +68,13 @@ bool loadSettings() {
   showLine = prefs.getBool("showLine", false);
   showWeatherTime = prefs.getBool("weather", true);
 
-  latitudeStop = prefs.getFloat("lat", 0);
-  longitudeStop = prefs.getFloat("lon", 0);
+  offsetMin = prefs.putUInt("offsetMin", 0);
+
+  displayColorName = prefs.getString("displayColorName", "ORANGE");
+  timeColorName = prefs.getString("timeColorName", "BLUE");
+
+  latitudeStop = prefs.getFloat("lat", 52.498882);
+  longitudeStop = prefs.getFloat("lon", 13.371630);
 
   prefs.end();
 
@@ -91,6 +102,11 @@ void saveSettings() {
 
   prefs.putBool("showLine", showLine);
   prefs.putBool("weather", showWeatherTime);
+
+  prefs.putUInt("offsetMin", offsetMin);
+
+  prefs.putString("displayColorName", displayColorName);
+  prefs.putString("timeColorName", timeColorName);
 
   prefs.putFloat("lat", latitudeStop);
   prefs.putFloat("lon", longitudeStop);
@@ -175,6 +191,30 @@ String extractStationID(const String& rawId) {
     }
 
     return result;
+}
+
+/* ========================================================= */
+/* Einstellungen HILFSFUNKTIONEN
+/* ========================================================= */
+
+uint16_t getDisplayColorFromString(String colorName) {
+  if (colorName == "BLACK") return BLACK;
+  if (colorName == "WHITE") return WHITE;
+  if (colorName == "RED") return RED;
+  if (colorName == "GREEN") return GREEN;
+  if (colorName == "BLUE") return BLUE;
+  if (colorName == "YELLOW") return YELLOW;
+  if (colorName == "CYAN") return CYAN;
+  if (colorName == "MAGENTA") return MAGENTA;
+  if (colorName == "PURPLE") return PURPLE;
+  if (colorName == "PINK") return PINK;
+  if (colorName == "BROWN") return BROWN;
+  if (colorName == "GRAY") return GRAY;
+  if (colorName == "LIGHTGRAY") return LIGHTGRAY;
+  if (colorName == "DARKGREEN") return DARKGREEN;
+  if (colorName == "LIGHTBLUE") return LIGHTBLUE;
+  
+  return ORANGE; // Fallback, falls etwas schiefgeht
 }
 
 /* ========================================================= */
@@ -263,38 +303,98 @@ void handleSaveWifi() {
 // --- SEITE 2: STATION SETUP ---
 void handleStopConfig() {
   String page = R"rawliteral(
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Stationen Setup</title>
-  </head>
-  <body>
-    <h2>Station Konfiguration</h2>
-    <p>Super! WLAN haben wir schon einmal. Als nächstes musst du angeben, zu welcher Station du die Abfahrten angezeigt bekommen möchtest. Gebe dafür einen eindeutigen Teil des Stationsnamens ein (Bei "Warschauer Straße" reicht z.B. "Warschauer"). Bei Tippfehlern kann die Station leider nicht gefunden werden.</p>
-    <p>Du kannst optional bis zu zwei bestimmte Linien eingeben. Beispiele: Bus "M45", U-Bahn "U1", S-Bahn "S3", Tram "M10".</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Stationen Setup</title>
+      <style>
+        details { background: #f9f9f9; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px; }
+        summary { font-weight: bold; cursor: pointer; margin-bottom: 10px; outline: none; }
+      </style>
+    </head>
+    <body>
+      <h2>Station Konfiguration</h2>
+      <p>Super! WLAN haben wir schon einmal. Als nächstes musst du angeben, zu welcher Station du die Abfahrten angezeigt bekommen möchtest. Gebe dafür einen eindeutigen Teil des Stationsnamens ein (Bei "Warschauer Straße" reicht z.B. "Warschauer"). Bei Tippfehlern kann die Station leider nicht gefunden werden.</p>
+      <p>Du kannst optional bis zu zwei bestimmte Linien eingeben. Beispiele: Bus "M45", U-Bahn "U2", S-Bahn "S3", Tram "M10".</p>
 
-    <form action="/saveStop" method="POST">
-      <label>Station*:</label><br>
-      <input type="text" name="stop" value=")rawliteral" + selectedStopName + R"rawliteral(" required><br><br>
+      <form action="/saveStop" method="POST">
+        <label>Station*:</label><br>
+        <input type="text" name="stop" value=")rawliteral" + selectedStopName + R"rawliteral(" required><br><br>
 
-      <label>1. Linie (optional):</label><br>
-      <input type="text" name="line" value=")rawliteral" + selectedLine + R"rawliteral("><br><br>
+        <label>1. Linie (optional):</label><br>
+        <input type="text" name="line" value=")rawliteral" + selectedLine + R"rawliteral("><br><br>
 
-      <label>2. Linie (optional):</label><br>
-      <input type="text" name="line2" value=")rawliteral" + selectedLine2 + R"rawliteral("><br><br>
+        <label>2. Linie (optional):</label><br>
+        <input type="text" name="line2" value=")rawliteral" + selectedLine2 + R"rawliteral("><br><br>
 
-      <input type="checkbox" name="showLine" value="true" )rawliteral" + (showLine ? "checked" : "") + R"rawliteral(>
-      Linie anzeigen<br><br>
+        <input type="checkbox" name="weather" value="true" )rawliteral" + (showWeatherTime ? "checked" : "") + R"rawliteral(>
+        Wetter und Uhrzeit anzeigen<br><br>
 
-      <input type="checkbox" name="weather" value="true" )rawliteral" + (showWeatherTime ? "checked" : "") + R"rawliteral(>
-      Wetter und Uhrzeit anzeigen<br><br>
+        <details>
+          <summary>Erweitert</summary>
+          
+          <input type="checkbox" name="showLine" value="true" )rawliteral" + (showLine ? "checked" : "") + R"rawliteral(>
+          Linie anzeigen<br><br>
 
-      <input type="submit" value="Speichern">
-    </form>
-  </body>
-  </html>
-  )rawliteral"; 
+          <label>Offset (Verzögerung):</label><br>
+          <input type="number" name="offset" min="0" max="15" value=")rawliteral" + String(offsetMin) + R"rawliteral("> min<br><br>
+
+          <label>Anzeige Farbe:</label><br>
+          <select name="displayColor" id="selDisplayColor">
+            <option value="BLACK">Schwarz</option>
+            <option value="WHITE">Weiß</option>
+            <option value="RED">Rot</option>
+            <option value="GREEN">Grün</option>
+            <option value="BLUE">Blau</option>
+            <option value="YELLOW">Gelb</option>
+            <option value="CYAN">Türkis</option>
+            <option value="MAGENTA">Magenta</option>
+            <option value="ORANGE">Orange</option>
+            <option value="PURPLE">Lila</option>
+            <option value="PINK">Pink</option>
+            <option value="BROWN">Braun</option>
+            <option value="GRAY">Grau</option>
+            <option value="LIGHTGRAY">Hellgrau</option>
+            <option value="DARKGREEN">Dunkelgrün</option>
+            <option value="LIGHTBLUE">Hellblau</option>
+          </select><br><br>
+
+          <label>Uhrzeit Farbe:</label><br>
+          <select name="timeColor" id="selTimeColor">
+            <option value="BLACK">Schwarz</option>
+            <option value="WHITE">Weiß</option>
+            <option value="RED">Rot</option>
+            <option value="GREEN">Grün</option>
+            <option value="BLUE">Blau</option>
+            <option value="YELLOW">Gelb</option>
+            <option value="CYAN">Türkis</option>
+            <option value="MAGENTA">Magenta</option>
+            <option value="ORANGE">Orange</option>
+            <option value="PURPLE">Lila</option>
+            <option value="PINK">Pink</option>
+            <option value="BROWN">Braun</option>
+            <option value="GRAY">Grau</option>
+            <option value="LIGHTGRAY">Hellgrau</option>
+            <option value="DARKGREEN">Dunkelgrün</option>
+            <option value="LIGHTBLUE">Hellblau</option>
+          </select><br><br>
+        </details>
+
+        <input type="submit" value="Speichern">
+      </form>
+
+      <script>
+        // Setzt die Dropdowns automatisch auf die aktuell gespeicherten Werte
+        document.getElementById('selDisplayColor').value = ')rawliteral" + displayColorName + R"rawliteral(';
+        document.getElementById('selTimeColor').value = ')rawliteral" + timeColorName + R"rawliteral(';
+      </script>
+    </body>
+    </html>
+    )rawliteral";
+
+    // Animationen pausieren
+    stopRainTask();
 
   server.send(200, "text/html", page);
 }
@@ -384,10 +484,16 @@ void handleSaveStop() {
   if (server.hasArg("stop")) selectedStopName = server.arg("stop");
   if (server.hasArg("line1")) selectedLine = server.arg("line1");
   if (server.hasArg("line2")) selectedLine2 = server.arg("line2");
+  if (server.hasArg("timeColor")) timeColorName = server.arg("timeColor");
+  if (server.hasArg("displayColor")) displayColorName = server.arg("displayColor");
+  if (server.hasArg("offset")) offsetMin = server.arg("offset").toInt();
   
   // Wichtig: Bei Checkboxen ist der Key nur im Request, wenn sie angehakt sind!
   showLine = server.hasArg("showLine");
   showWeatherTime = server.hasArg("weather");
+
+  DEPARTURE_COLOR = getDisplayColorFromString(displayColorName);
+  CLOCK_COLOR = getDisplayColorFromString(timeColorName);
 
   bool success = setStopIDByName(selectedStopName);
 
