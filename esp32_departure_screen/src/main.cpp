@@ -135,7 +135,9 @@ void loop() {
     weatherSecondsCounter += 1;
     SystemTimeSecondsCounter += 1;
 
-    drawTime();
+    if (showWeatherTime) {
+      drawTime();
+    }
   }
 
   if (departureSecondsCounter >= 6) { // alle 6 Sekunden
