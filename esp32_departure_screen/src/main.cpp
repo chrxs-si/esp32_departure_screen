@@ -13,8 +13,6 @@
 // API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
 //Useless Facts API: https://uselessfacts.jsph.pl/api/v2/facts/random?language=de
 
-Clock myClock;
-
 void updateTemprature(int temp) {
     uint16_t textColor;
 
@@ -113,11 +111,6 @@ void finishSetup() {
 
   display->clearScreen();
 
-  if (showWeatherTime) {
-    myClock.stop();
-    myClock.start();
-  }
-
   updateSystemTime();
   updateWeather();
   updateDepartures();
@@ -142,6 +135,7 @@ void loop() {
     weatherSecondsCounter += 1;
     SystemTimeSecondsCounter += 1;
 
+    drawTime();
   }
 
   if (departureSecondsCounter >= 6) { // alle 6 Sekunden
