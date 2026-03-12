@@ -587,6 +587,9 @@ void setupAP(bool firstStart) {
 void Config() {
   bool hasSavedData = loadSettings(); 
 
+  DEPARTURE_COLOR = getDisplayColorFromString(displayColorName);
+  CLOCK_COLOR = getDisplayColorFromString(timeColorName);
+
   // FALL 3B: Daten existieren & WLAN wurde NICHT geschlossen
   if (hasSavedData && inConfigMode) {
     display->clearScreen();
