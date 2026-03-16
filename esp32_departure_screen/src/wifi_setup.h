@@ -17,6 +17,8 @@ extern String selectedStopName;
 extern String selectedStopID;
 extern String selectedLine;
 extern String selectedLine2;
+extern String selectedLine3;
+extern String selectedLine4;
 
 extern int offsetMin; 
 
@@ -28,6 +30,15 @@ extern float longitudeStop;
 
 extern bool showLine;
 extern bool showWeatherTime;
+
+extern String replaceFrom1;
+extern String replaceTo1;
+extern String replaceFrom2;
+extern String replaceTo2;
+extern String replaceFrom3;
+extern String replaceTo3;
+extern String replaceFrom4;
+extern String replaceTo4;
 
 // Hauptfunktionen
 void Config();

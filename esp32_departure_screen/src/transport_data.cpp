@@ -66,7 +66,7 @@ String getDeparturesJson(String stopID) {
   return json;
 }
 
-int parseDepartures(String json, String lineFilter1, String lineFilter2, Departure* result, int maxResults) {
+int parseDepartures(String json, String lineFilter1, String lineFilter2, String lineFilter3, String lineFilter4, Departure* result, int maxResults) {
     DynamicJsonDocument doc(32768);  // größerer Speicher
 
     DeserializationError err = deserializeJson(doc, json);
@@ -94,8 +94,10 @@ int parseDepartures(String json, String lineFilter1, String lineFilter2, Departu
 
         bool useLineFilter1 = lineFilter1 && lineFilter1 != "";
         bool useLineFilter2 = lineFilter2 && lineFilter2 != "";
+        bool useLineFilter3 = lineFilter3 && lineFilter3 != "";
+        bool useLineFilter4 = lineFilter4 && lineFilter4 != "";
 
-        if ((useLineFilter1 || useLineFilter2) && String(lineName) != lineFilter1 && String(lineName) != lineFilter2) continue;
+        if ((useLineFilter1 || useLineFilter2 || useLineFilter3 || useLineFilter4) && String(lineName) != lineFilter1 && String(lineName) != lineFilter2 && String(lineName) != lineFilter3 && String(lineName) != lineFilter4) continue;
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
@@ -121,7 +123,7 @@ void updateDepartures() {
   Serial.print("update departures.");
 
   String json = getDeparturesJson(selectedStopID);
-  int numDepartures = parseDepartures(json, selectedLine, selectedLine2, departures, MAX_DEPARTURES);
+  int numDepartures = parseDepartures(json, selectedLine, selectedLine2, selectedLine3, selectedLine4, departures, MAX_DEPARTURES);
   int maxShownDepartures = 3;
   if (!showWeatherTime) {
     maxShownDepartures = 4;
@@ -183,6 +185,20 @@ void updateDepartures() {
     if (showLine) {dest_len -= MAX_LINE_LEN;}
     if (dest.length() > dest_len) {
       dest = dest.substring(0, dest_len);
+    }
+
+    // constum Ziele setzen
+    if (dest == replaceFrom1) {
+      dest = replaceTo1;
+    }
+    if (dest == replaceFrom2) {
+      dest = replaceTo2;
+    }
+    if (dest == replaceFrom3) {
+      dest = replaceTo3;
+    }
+    if (dest == replaceFrom4) {
+      dest = replaceTo4;
     }
 
     String lineString = "";
