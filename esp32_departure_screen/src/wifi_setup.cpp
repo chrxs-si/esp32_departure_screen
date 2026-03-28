@@ -55,6 +55,13 @@ String replaceTo4   = "";
 
 String wifiOptionsHTML = "";
 
+//extern
+bool ads = false;
+int adsInterval = 60;
+bool discoMode = false;
+int discoTime = 30;
+
+
 /* ========================================================= */
 /* EINSTELLUNGEN LADEN & SPEICHERN
 /* ========================================================= */
@@ -355,7 +362,7 @@ void handleStopConfig() {
         <input type="text" name="stop" value=")rawliteral" + selectedStopName + R"rawliteral(" required><br><br>
 
         <label>1. Linie (optional): </label>
-        <input type="text" name="line" value=")rawliteral" + selectedLine + R"rawliteral("><br>
+        <input type="text" name="line1" value=")rawliteral" + selectedLine + R"rawliteral("><br>
 
         <label>2. Linie (optional): </label>
         <input type="text" name="line2" value=")rawliteral" + selectedLine2 + R"rawliteral("><br>
@@ -364,7 +371,7 @@ void handleStopConfig() {
         <input type="text" name="line3" value=")rawliteral" + selectedLine3 + R"rawliteral("><br>
 
         <label>4. Linie (optional): </label>
-        <input type="text" name="line4" value=")rawliteral" + selectedLine4 + R"rawliteral("><br>
+        <input type="text" name="line4" value=")rawliteral" + selectedLine4 + R"rawliteral("><br><br>
 
         <input type="checkbox" name="weather" value="true" )rawliteral" + (showWeatherTime ? "checked" : "") + R"rawliteral(>
         Wetter und Uhrzeit anzeigen<br><br>
@@ -584,6 +591,22 @@ void handleSaveStop() {
   if (server.hasArg("replaceTo3")) replaceTo3 = server.arg("replaceTo3");
   if (server.hasArg("replaceFrom4")) replaceFrom4 = server.arg("replaceFrom4");
   if (server.hasArg("replaceTo4")) replaceTo4 = server.arg("replaceTo4");
+
+  // extras
+  ads = (selectedLine == "!WERBUNG" );
+  if (ads) {
+    adsInterval = selectedLine2.toInt();
+    selectedLine = "";
+    selectedLine2 = "";
+
+  } 
+  Serial.println("selectedLine:" + selectedLine);
+  discoMode = (selectedLine3 == "!DISCO");
+  if (discoMode) {
+    discoTime = selectedLine4.toInt();
+    selectedLine3 = "";
+    selectedLine4 = "";
+  }
   
   // Wichtig: Bei Checkboxen ist der Key nur im Request, wenn sie angehakt sind!
   showLine = server.hasArg("showLine");

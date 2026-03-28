@@ -40,6 +40,12 @@ extern String replaceTo3;
 extern String replaceFrom4;
 extern String replaceTo4;
 
+// exras
+extern bool ads;
+extern int adsInterval;
+extern bool discoMode;
+extern int discoTime;
+
 // Hauptfunktionen
 void Config();
 void connectToWifi(String ssid, String password);
