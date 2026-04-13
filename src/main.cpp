@@ -9,6 +9,7 @@
 #include "weather_data.h"
 #include "clock.h"
 #include "extras.h"
+#include "updater.h"
 
 //Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
 // API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
@@ -91,6 +92,9 @@ void setup() {
   
   // Startet den gesamten Konfigurations- und Verbindungsablauf
   Config();
+
+  // Sobald die Verbindung steht, wird die Version geprüft und ggf. ein Update durchgeführt
+  updateSystem();
 
   Serial.println("setup fertig.");
 }

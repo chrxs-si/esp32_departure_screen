@@ -33,6 +33,10 @@ jobs:
         id: vars
         run: echo "tag=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
 
+      - name: Set date
+        id: date
+        run: echo "date=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+
       - name: Create Release and Upload Firmware
         uses: softprops/action-gh-release@v2
         with:
@@ -40,7 +44,7 @@ jobs:
           name: Departure Screen Update ${{ steps.vars.outputs.tag }}
           body: |
             Automatisch generierter Build der ESP32 Firmware.
-            Datum: $(date +'%Y.%m.%d-%H%M')
+            Datum: ${{ steps.date.outputs.date }}
           draft: false
           prerelease: false
           # Der Pfad zur .bin Datei (Standard bei PlatformIO)
