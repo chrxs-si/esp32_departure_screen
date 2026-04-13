@@ -15,6 +15,9 @@
 // API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
 //Useless Facts API: https://uselessfacts.jsph.pl/api/v2/facts/random?language=de
 
+bool ranUpdateToday = false;
+int lastDay = -1;
+
 void updateTemprature(int temp) {
     uint16_t textColor;
 
@@ -93,9 +96,6 @@ void setup() {
   // Startet den gesamten Konfigurations- und Verbindungsablauf
   Config();
 
-  // Sobald die Verbindung steht, wird die Version geprüft und ggf. ein Update durchgeführt
-  updateSystem();
-
   Serial.println("setup fertig.");
 }
 
@@ -116,6 +116,9 @@ void finishSetup() {
   }
   Serial.println("WiFi connected.");
 
+  // Sobald die Verbindung steht, wird die Version geprüft und ggf. ein Update durchgeführt
+  updateSystem();
+
   display->clearScreen();
 
   updateSystemTime();
@@ -134,11 +137,33 @@ void loop() {
 
   handleBackgroundWLAN();
 
-  unsigned long now = millis();
+  time_t now;
+  time(&now);
+
+  struct tm timeinfo;
+  localtime_r(&now, &timeinfo);
+
+  int hour = timeinfo.tm_hour;
+  int minute = timeinfo.tm_min;
+  int second = timeinfo.tm_sec;
+  int day = timeinfo.tm_mday;
+
+  // --- 04:00 TASK ---
+  if (day != lastDay) {
+    lastDay = day;
+    ranUpdateToday = false;
+  }
+
+  if (hour == 4 && minute == 0 && !ranUpdateToday) {
+    ranUpdateToday = true;
+    updateSystem();
+  }
+
+  unsigned long nowT = millis();
 
   // Sekunden hochzählen
   if (now - lastUpdate > 1000) {
-    lastUpdate = now;
+    lastUpdate = nowT;
 
     departureSecondsCounter += 1;
     weatherSecondsCounter += 1;
