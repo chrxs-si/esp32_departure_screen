@@ -10,6 +10,8 @@
 // Globale Konfigurationswerte
 extern bool inConfigMode;
 
+extern String current_version;
+
 extern String selectedSSID;
 extern String selectedPassword;
 

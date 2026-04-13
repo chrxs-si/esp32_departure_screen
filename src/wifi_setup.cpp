@@ -23,6 +23,8 @@ String espPassword = String(random(10000000, 100000000));
 bool inConfigMode = true; // True = WLAN bleibt offen / Setup erzwingen
 bool setupComplete = false;
 
+String current_version = "1.0.0";
+
 String selectedSSID = "";
 String selectedPassword = "";
 
@@ -71,6 +73,8 @@ bool loadSettings() {
 
   inConfigMode = prefs.getBool("configMode", true);
 
+  current_version = prefs.getString("current_version", current_version);
+
   espSSID = prefs.getString("esp_ssid", espSSID);
   espPassword = prefs.getString("esp_pass", espPassword);
 
@@ -116,6 +120,8 @@ bool loadSettings() {
 
 void saveSettings() {
   prefs.begin("config", false);
+
+  prefs.putString("current_version", current_version);
 
   prefs.putString("esp_ssid", espSSID);
   prefs.putString("esp_pass", espPassword);
