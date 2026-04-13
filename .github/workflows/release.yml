@@ -48,6 +48,6 @@ jobs:
           draft: false
           prerelease: false
           # Der Pfad zur .bin Datei (Standard bei PlatformIO)
-          files: .pio/build/*/departure_board.bin
+          files: .pio/build/*/firmware.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
