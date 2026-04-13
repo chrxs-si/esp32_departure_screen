@@ -149,6 +149,11 @@ bool loadSettings() {
   Serial.println("Replace 3: " + replaceFrom3 + " -> " + replaceTo3);
   Serial.println("Replace 4: " + replaceFrom4 + " -> " + replaceTo4);
 
+  Serial.println("\n--- Haltestellen Koordinaten ---");
+  Serial.println("Latitude: " + String(latitudeStop));
+  Serial.println("Longitude: " + String(longitudeStop));
+  Serial.println("\n");
+
 
   // Überprüfen, ob grundlegende WLAN- und Stationsdaten vorhanden sind
   if (selectedSSID == "" || selectedPassword == "" || selectedStopID == "") {

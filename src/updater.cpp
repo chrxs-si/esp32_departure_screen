@@ -16,7 +16,7 @@ void updateSystem() {
     newestVersion = checkForSoftwareUpdates();
     loadSettings(); // Einstellungen neu laden, damit die neue Version korrekt angezeigt wird
 
-    if (newestVersion != current_version && current_version != "") {
+    if (newestVersion != current_version) {
         String result = updateSoftware();
         Serial.println("[OTA] Update Ergebnis: " + result);
     }
