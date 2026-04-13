@@ -3,8 +3,6 @@ name: ESP32 Build & Release
 on:
   push:
     branches: [ "main" ]
-  schedule:
-    - cron: '0 0 * * *' # Jeden Tag um Mitternacht
   workflow_dispatch: # Ermöglicht manuellen Start per Klick
 
 permissions:
@@ -33,16 +31,16 @@ jobs:
 
       - name: Generate Version Tag
         id: vars
-        run: echo "tag=v$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+        run: echo "tag=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload Firmware
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: Firmware Update ${{ steps.vars.outputs.tag }}
+          name: Departure Screen Update ${{ steps.vars.outputs.tag }}
           body: |
             Automatisch generierter Build der ESP32 Firmware.
-            Datum: ${{ steps.vars.outputs.tag }}
+            Datum: $(date +'%Y.%m.%d-%H%M')
           draft: false
           prerelease: false
           # Der Pfad zur .bin Datei (Standard bei PlatformIO)
