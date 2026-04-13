@@ -43,11 +43,11 @@ jobs:
           tag_name: ${{ steps.vars.outputs.tag }}
           name: Departure Screen Update ${{ steps.vars.outputs.tag }}
           body: |
-            Automatisch generierter Build der ESP32 Firmware.
+            Automatisch generierter Build des ESP32 Departure Screens.
             Datum: ${{ steps.date.outputs.date }}
           draft: false
           prerelease: false
           # Der Pfad zur .bin Datei (Standard bei PlatformIO)
-          files: .pio/build/*/firmware.bin
+          files: .pio/build/*/departure_board.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

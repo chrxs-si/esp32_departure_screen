@@ -111,6 +111,45 @@ bool loadSettings() {
 
   prefs.end();
 
+  Serial.println("\nEinstellungen geladen:");
+
+  Serial.println("Config Mode: " + String(inConfigMode));
+  Serial.println("Current Version: " + current_version);
+
+  Serial.println("\n--- ESP Zugangsdaten ---");
+  Serial.println("ESP SSID: " + espSSID);
+  Serial.println("ESP Passwort: " + espPassword);
+
+  Serial.println("\n--- WLAN Auswahl ---");
+  Serial.println("SSID: " + selectedSSID);
+  Serial.println("Passwort: " + selectedPassword);
+
+  Serial.println("\n--- Haltestelle ---");
+  Serial.println("Stop Name: " + selectedStopName);
+  Serial.println("Stop ID: " + selectedStopID);
+
+  Serial.println("\n--- Linien ---");
+  Serial.println("Line 1: " + selectedLine);
+  Serial.println("Line 2: " + selectedLine2);
+  Serial.println("Line 3: " + selectedLine3);
+  Serial.println("Line 4: " + selectedLine4);
+
+  Serial.println("\n--- Anzeige Optionen ---");
+  Serial.println("Show Line: " + String(showLine));
+  Serial.println("Show Weather Time: " + String(showWeatherTime));
+  Serial.println("Offset Minuten: " + String(offsetMin));
+
+  Serial.println("\n--- Farben ---");
+  Serial.println("Display Color: " + displayColorName);
+  Serial.println("Time Color: " + timeColorName);
+
+  Serial.println("\n--- Ersetzungen ---");
+  Serial.println("Replace 1: " + replaceFrom1 + " -> " + replaceTo1);
+  Serial.println("Replace 2: " + replaceFrom2 + " -> " + replaceTo2);
+  Serial.println("Replace 3: " + replaceFrom3 + " -> " + replaceTo3);
+  Serial.println("Replace 4: " + replaceFrom4 + " -> " + replaceTo4);
+
+
   // Überprüfen, ob grundlegende WLAN- und Stationsdaten vorhanden sind
   if (selectedSSID == "" || selectedPassword == "" || selectedStopID == "") {
     return false;

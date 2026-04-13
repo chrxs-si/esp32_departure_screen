@@ -9,10 +9,14 @@
 const char* userAgent = "ESP32-Updater-Client";
 
 String latestVersionLink = ""; // Speicher für den Download-Link des Assets
+String latestAssetId = "";
+String newestVersion = "";
 
 void updateSystem() {
-    String newestVersion = checkForSoftwareUpdates();
-    if (newestVersion != current_version) {
+    newestVersion = checkForSoftwareUpdates();
+    loadSettings(); // Einstellungen neu laden, damit die neue Version korrekt angezeigt wird
+
+    if (newestVersion != current_version && current_version != "") {
         String result = updateSoftware();
         Serial.println("[OTA] Update Ergebnis: " + result);
     }
@@ -30,6 +34,7 @@ String checkForSoftwareUpdates() {
     Serial.println("[OTA] Prüfe auf Updates: " + url);
     
     http.begin(client, url);
+    http.addHeader("Authorization", "token " + GITHUB_TOKEN); // Weil das Repo privat ist, Token übergeben
     http.addHeader("User-Agent", userAgent);
     
     int httpCode = http.GET();
@@ -49,6 +54,7 @@ String checkForSoftwareUpdates() {
                 String fileName = asset["name"].as<String>();
                 if (fileName.endsWith(".bin")) {
                     latestVersionLink = asset["browser_download_url"].as<String>();
+                    latestAssetId = asset["id"].as<String>();
                     newVersion = tag_name;
                     break;
                 }
@@ -73,18 +79,20 @@ String checkForSoftwareUpdates() {
 }
 
 String updateSoftware() {
-    if (latestVersionLink == "") return "Kein Download-Link gefunden.";
+    if (latestAssetId == "") return "Keine Download-ID gefunden.";
 
     WiFiClientSecure client;
     client.setInsecure();
     HTTPClient http;
-
-    Serial.println("[OTA] Starte Download: " + latestVersionLink);
     
     // GitHub Assets leiten oft auf objects.githubusercontent.com um
     http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
-    http.begin(client, latestVersionLink);
+    String url = "https://api.github.com/repos/" + String(GITHUB_USER) + "/" + String(GITHUB_REPO) + "/releases/assets/" + String(latestAssetId);
+    Serial.println("[OTA] Starte Download: " + url);
+    http.begin(client, url);
+    http.addHeader("Authorization", "token " + GITHUB_TOKEN); // Weil das Repo privat ist, Token übergeben
     http.addHeader("User-Agent", userAgent);
+    http.addHeader("Accept", "application/octet-stream");
 
     int httpCode = http.GET();
     if (httpCode != HTTP_CODE_OK) {
@@ -125,6 +133,9 @@ String updateSoftware() {
 
     Serial.println("[OTA] Update erfolgreich abgeschlossen. Starte neu...");
     http.end();
+
+    current_version = newestVersion; // Lokale Version aktualisieren, damit die Anzeige korrekt ist
+    saveSettings(); // Neue Version speichern, damit sie nach dem Neustart korrekt angezeigt wird
     
     // Wir geben die Info zurück, aber der ESP sollte idealerweise neu starten
     delay(1000);

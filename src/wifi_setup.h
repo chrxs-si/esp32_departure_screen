@@ -49,6 +49,8 @@ extern bool discoMode;
 extern int discoTime;
 
 // Hauptfunktionen
+bool loadSettings();
+void saveSettings();
 void Config();
 void connectToWifi(String ssid, String password);
 void scanWIFIOptions();
