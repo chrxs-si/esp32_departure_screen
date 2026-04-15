@@ -225,10 +225,10 @@ void updateDepartures() {
     } 
 
     if (showWeatherTime) {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText("A" + String(departures[i].minutes) + "A", PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i+1), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
       drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i+1), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     } else {
-      drawStaticText(String(departures[i].minutes), PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
+      drawStaticText("A" + String(departures[i].minutes) + "A", PANEL_RES_X * PANEL_CHAIN - 12, PANEL_RES_X * PANEL_CHAIN, getVerticalPosForRow(i), ALIGN_RIGHT, DEPARTURE_COLOR, 1);
       drawStaticText(lineString + dest, 0, PANEL_RES_X * PANEL_CHAIN - 12, getVerticalPosForRow(i), ALIGN_LEFT, DEPARTURE_COLOR, 1);
     }
   }
