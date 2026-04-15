@@ -1,0 +1,53 @@
+name: ESP32 Build & Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Ermöglicht manuellen Start per Klick
+
+permissions:
+  contents: write # Erlaubt das Erstellen von Releases
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Run PlatformIO Build
+        run: pio run
+
+      - name: Generate Version Tag
+        id: vars
+        run: echo "tag=v1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Set date
+        id: date
+        run: echo "date=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release and Upload Firmware
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: Departure Screen Update ${{ steps.vars.outputs.tag }}
+          body: |
+            Automatisch generierter Build des ESP32 Departure Screens.
+            Datum: ${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
+          # Der Pfad zur .bin Datei (Standard bei PlatformIO)
+          files: .pio/build/*/firmware.bin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

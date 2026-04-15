@@ -10,19 +10,37 @@ String VBB_BASE_URL = "https://v6.vbb.transport.rest/stops/";
 bool useVBB = true;
 
 long isoToRelativeMinutes(const String& isoTime) {
-  struct tm tm = {};
+  struct tm tm = {0};
+  int year, month, mday, hour, min, sec, tz_h, tz_m;
+  char tz_sign;
 
-  // "2026-01-27T18:03:00+01:00" → ohne Zeitzone parsen
-  strptime(isoTime.substring(0, 19).c_str(),
-            "%Y-%m-%dT%H:%M:%S",
-            &tm);
+  // Beispiel: 2026-01-27T18:03:00+01:00
+  // Wir parsen alle Komponenten inklusive Zeitzonen-Offset
+  if (sscanf(isoTime.c_str(), "%d-%d-%dT%d:%d:%d%c%d:%d", 
+             &year, &month, &mday, &hour, &min, &sec, 
+             &tz_sign, &tz_h, &tz_m) < 7) {
+    return 0;
+  }
 
+  tm.tm_year = year - 1900;
+  tm.tm_mon = month - 1;
+  tm.tm_mday = mday;
+  tm.tm_hour = hour;
+  tm.tm_min = min;
+  tm.tm_sec = sec;
+  tm.tm_isdst = -1; // Wichtig: mktime soll Sommerzeit selbst prüfen
+
+  // mktime konvertiert struct tm (Lokalzeit laut TZ-Variable) in Unix-Timestamp
   time_t target = mktime(&tm);
-
+  
   time_t now;
   time(&now);
 
-  return (target - now) / 60;
+  // Falls mktime und die API-Zeit unterschiedliche Offsets haben (UTC vs. Local),
+  // gleicht dies die Differenz aus.
+  long diffSeconds = difftime(target, now);
+  
+  return diffSeconds / 60;
 }
 
 String getDeparturesJson(String stopID) {
@@ -66,7 +84,7 @@ String getDeparturesJson(String stopID) {
   return json;
 }
 
-int parseDepartures(String json, String lineFilter1, String lineFilter2, Departure* result, int maxResults) {
+int parseDepartures(String json, String lineFilter1, String lineFilter2, String lineFilter3, String lineFilter4, Departure* result, int maxResults) {
     DynamicJsonDocument doc(32768);  // größerer Speicher
 
     DeserializationError err = deserializeJson(doc, json);
@@ -94,8 +112,10 @@ int parseDepartures(String json, String lineFilter1, String lineFilter2, Departu
 
         bool useLineFilter1 = lineFilter1 && lineFilter1 != "";
         bool useLineFilter2 = lineFilter2 && lineFilter2 != "";
+        bool useLineFilter3 = lineFilter3 && lineFilter3 != "";
+        bool useLineFilter4 = lineFilter4 && lineFilter4 != "";
 
-        if ((useLineFilter1 || useLineFilter2) && String(lineName) != lineFilter1 && String(lineName) != lineFilter2) continue;
+        if ((useLineFilter1 || useLineFilter2 || useLineFilter3 || useLineFilter4) && String(lineName) != lineFilter1 && String(lineName) != lineFilter2 && String(lineName) != lineFilter3 && String(lineName) != lineFilter4) continue;
         if (count >= maxResults) break;
 
         strncpy(result[count].line, lineName, MAX_LINE_LEN - 1);
@@ -121,7 +141,7 @@ void updateDepartures() {
   Serial.print("update departures.");
 
   String json = getDeparturesJson(selectedStopID);
-  int numDepartures = parseDepartures(json, selectedLine, selectedLine2, departures, MAX_DEPARTURES);
+  int numDepartures = parseDepartures(json, selectedLine, selectedLine2, selectedLine3, selectedLine4, departures, MAX_DEPARTURES);
   int maxShownDepartures = 3;
   if (!showWeatherTime) {
     maxShownDepartures = 4;
@@ -183,6 +203,20 @@ void updateDepartures() {
     if (showLine) {dest_len -= MAX_LINE_LEN;}
     if (dest.length() > dest_len) {
       dest = dest.substring(0, dest_len);
+    }
+
+    // constum Ziele setzen
+    if (dest == replaceFrom1) {
+      dest = replaceTo1;
+    }
+    if (dest == replaceFrom2) {
+      dest = replaceTo2;
+    }
+    if (dest == replaceFrom3) {
+      dest = replaceTo3;
+    }
+    if (dest == replaceFrom4) {
+      dest = replaceTo4;
     }
 
     String lineString = "";

@@ -23,6 +23,8 @@ String espPassword = String(random(10000000, 100000000));
 bool inConfigMode = true; // True = WLAN bleibt offen / Setup erzwingen
 bool setupComplete = false;
 
+String current_version = "1.0.0";
+
 String selectedSSID = "";
 String selectedPassword = "";
 
@@ -30,6 +32,8 @@ String selectedStopName = "";
 String selectedStopID = "";
 String selectedLine = "";
 String selectedLine2 = "";
+String selectedLine3 = "";
+String selectedLine4 = "";
 
 int offsetMin = 0; 
 
@@ -42,7 +46,23 @@ float longitudeStop = 13.3888599;
 bool showLine = true;
 bool showWeatherTime = false;
 
+String replaceFrom1 = "";
+String replaceTo1   = "";
+String replaceFrom2 = "";
+String replaceTo2   = "";
+String replaceFrom3 = "";
+String replaceTo3   = "";
+String replaceFrom4 = "";
+String replaceTo4   = "";
+
 String wifiOptionsHTML = "";
+
+//extern
+bool ads = false;
+int adsInterval = 60;
+bool discoMode = false;
+int discoTime = 30;
+
 
 /* ========================================================= */
 /* EINSTELLUNGEN LADEN & SPEICHERN
@@ -52,6 +72,8 @@ bool loadSettings() {
   prefs.begin("config", true);
 
   inConfigMode = prefs.getBool("configMode", true);
+
+  current_version = prefs.getString("current_version", current_version);
 
   espSSID = prefs.getString("esp_ssid", espSSID);
   espPassword = prefs.getString("esp_pass", espPassword);
@@ -64,6 +86,8 @@ bool loadSettings() {
 
   selectedLine = prefs.getString("line1", "");
   selectedLine2 = prefs.getString("line2", "");
+  selectedLine3 = prefs.getString("line3", "");
+  selectedLine4 = prefs.getString("line4", "");
 
   showLine = prefs.getBool("showLine", false);
   showWeatherTime = prefs.getBool("weather", true);
@@ -73,10 +97,63 @@ bool loadSettings() {
   displayColorName = prefs.getString("displayColorName", "ORANGE");
   timeColorName = prefs.getString("timeColorName", "BLUE");
 
+  replaceFrom1 = prefs.getString("replaceFrom1", "");
+  replaceTo1 = prefs.getString("replaceTo1", "");
+  replaceFrom2 = prefs.getString("replaceFrom2", "");
+  replaceTo2 = prefs.getString("replaceTo2", "");
+  replaceFrom3 = prefs.getString("replaceFrom3", "");
+  replaceTo3 = prefs.getString("replaceTo3", "");
+  replaceFrom4 = prefs.getString("replaceFrom4", "");
+  replaceTo4 = prefs.getString("replaceTo4", "");
+
   latitudeStop = prefs.getFloat("lat", 52.498882);
   longitudeStop = prefs.getFloat("lon", 13.371630);
 
   prefs.end();
+
+  Serial.println("\nEinstellungen geladen:");
+
+  Serial.println("Config Mode: " + String(inConfigMode));
+  Serial.println("Current Version: " + current_version);
+
+  Serial.println("\n--- ESP Zugangsdaten ---");
+  Serial.println("ESP SSID: " + espSSID);
+  Serial.println("ESP Passwort: " + espPassword);
+
+  Serial.println("\n--- WLAN Auswahl ---");
+  Serial.println("SSID: " + selectedSSID);
+  Serial.println("Passwort: " + selectedPassword);
+
+  Serial.println("\n--- Haltestelle ---");
+  Serial.println("Stop Name: " + selectedStopName);
+  Serial.println("Stop ID: " + selectedStopID);
+
+  Serial.println("\n--- Linien ---");
+  Serial.println("Line 1: " + selectedLine);
+  Serial.println("Line 2: " + selectedLine2);
+  Serial.println("Line 3: " + selectedLine3);
+  Serial.println("Line 4: " + selectedLine4);
+
+  Serial.println("\n--- Anzeige Optionen ---");
+  Serial.println("Show Line: " + String(showLine));
+  Serial.println("Show Weather Time: " + String(showWeatherTime));
+  Serial.println("Offset Minuten: " + String(offsetMin));
+
+  Serial.println("\n--- Farben ---");
+  Serial.println("Display Color: " + displayColorName);
+  Serial.println("Time Color: " + timeColorName);
+
+  Serial.println("\n--- Ersetzungen ---");
+  Serial.println("Replace 1: " + replaceFrom1 + " -> " + replaceTo1);
+  Serial.println("Replace 2: " + replaceFrom2 + " -> " + replaceTo2);
+  Serial.println("Replace 3: " + replaceFrom3 + " -> " + replaceTo3);
+  Serial.println("Replace 4: " + replaceFrom4 + " -> " + replaceTo4);
+
+  Serial.println("\n--- Haltestellen Koordinaten ---");
+  Serial.println("Latitude: " + String(latitudeStop));
+  Serial.println("Longitude: " + String(longitudeStop));
+  Serial.println("\n");
+
 
   // Überprüfen, ob grundlegende WLAN- und Stationsdaten vorhanden sind
   if (selectedSSID == "" || selectedPassword == "" || selectedStopID == "") {
@@ -87,6 +164,8 @@ bool loadSettings() {
 
 void saveSettings() {
   prefs.begin("config", false);
+
+  prefs.putString("current_version", current_version);
 
   prefs.putString("esp_ssid", espSSID);
   prefs.putString("esp_pass", espPassword);
@@ -99,6 +178,7 @@ void saveSettings() {
 
   prefs.putString("line1", selectedLine);
   prefs.putString("line2", selectedLine2);
+  prefs.putString("line3", selectedLine3);
 
   prefs.putBool("showLine", showLine);
   prefs.putBool("weather", showWeatherTime);
@@ -107,6 +187,15 @@ void saveSettings() {
 
   prefs.putString("displayColorName", displayColorName);
   prefs.putString("timeColorName", timeColorName);
+
+  prefs.putString("replaceFrom1", replaceFrom1);
+  prefs.putString("replaceTo1", replaceTo1);
+  prefs.putString("replaceFrom2", replaceFrom2);
+  prefs.putString("replaceTo2", replaceTo2);
+  prefs.putString("replaceFrom3", replaceFrom3);
+  prefs.putString("replaceTo3", replaceTo3);
+  prefs.putString("replaceFrom4", replaceFrom4);
+  prefs.putString("replaceTo4", replaceTo4);
 
   prefs.putFloat("lat", latitudeStop);
   prefs.putFloat("lon", longitudeStop);
@@ -316,17 +405,23 @@ void handleStopConfig() {
     <body>
       <h2>Station Konfiguration</h2>
       <p>Super! WLAN haben wir schon einmal. Als nächstes musst du angeben, zu welcher Station du die Abfahrten angezeigt bekommen möchtest. Gebe dafür einen eindeutigen Teil des Stationsnamens ein (Bei "Warschauer Straße" reicht z.B. "Warschauer"). Bei Tippfehlern kann die Station leider nicht gefunden werden.</p>
-      <p>Du kannst optional bis zu zwei bestimmte Linien eingeben. Beispiele: Bus "M45", U-Bahn "U2", S-Bahn "S3", Tram "M10".</p>
+      <p>Du kannst optional bis zu vier bestimmte Linien eingeben, welche Ausschließlich angezeigt werden sollen. Beispiele: Bus "M45", U-Bahn "U2", S-Bahn "S3", Tram "M10".</p>
 
       <form action="/saveStop" method="POST">
         <label>Station*:</label><br>
         <input type="text" name="stop" value=")rawliteral" + selectedStopName + R"rawliteral(" required><br><br>
 
-        <label>1. Linie (optional):</label><br>
-        <input type="text" name="line" value=")rawliteral" + selectedLine + R"rawliteral("><br><br>
+        <label>1. Linie (optional): </label>
+        <input type="text" name="line1" value=")rawliteral" + selectedLine + R"rawliteral("><br>
 
-        <label>2. Linie (optional):</label><br>
-        <input type="text" name="line2" value=")rawliteral" + selectedLine2 + R"rawliteral("><br><br>
+        <label>2. Linie (optional): </label>
+        <input type="text" name="line2" value=")rawliteral" + selectedLine2 + R"rawliteral("><br>
+
+        <label>3. Linie (optional): </label>
+        <input type="text" name="line3" value=")rawliteral" + selectedLine3 + R"rawliteral("><br>
+
+        <label>4. Linie (optional): </label>
+        <input type="text" name="line4" value=")rawliteral" + selectedLine4 + R"rawliteral("><br><br>
 
         <input type="checkbox" name="weather" value="true" )rawliteral" + (showWeatherTime ? "checked" : "") + R"rawliteral(>
         Wetter und Uhrzeit anzeigen<br><br>
@@ -337,9 +432,57 @@ void handleStopConfig() {
           <input type="checkbox" name="showLine" value="true" )rawliteral" + (showLine ? "checked" : "") + R"rawliteral(>
           Linie anzeigen<br><br>
 
-          <label>Offset (Verzögerung):</label><br>
+          <label>Offset:</label><br>
+          <small>Abfahrten unter dieser Zeit werden nicht mehr anzeigen.</small><br>
           <input type="number" name="offset" min="0" max="15" value=")rawliteral" + String(offsetMin) + R"rawliteral("> min<br><br>
 
+          <label>Stationsnamen ersetzen</label><br>
+          <small>Angezeigte Stationsnamen durch eigene Namen ersetzen.</small><br>
+
+          <div style="display:flex; gap:10px; margin-bottom:6px;">
+            <input style="flex:1;" type="text"
+              name="replaceFrom1"
+              value=")rawliteral" + replaceFrom1 + R"rawliteral("
+              placeholder="Anzeigename">
+            <input style="flex:1;" type="text" placeholder="Ersetzen mit"
+              name="replaceTo1"
+              value=")rawliteral" + replaceTo1 + R"rawliteral(">
+          </div>
+
+          <div style="display:flex; gap:10px; margin-bottom:6px;">
+            <input style="flex:1;" type="text"
+              name="replaceFrom2"
+              value=")rawliteral" + replaceFrom2 + R"rawliteral("
+              placeholder="Anzeigename">
+            <input style="flex:1;" type="text"
+              name="replaceTo2"
+              value=")rawliteral" + replaceTo2 + R"rawliteral("
+              placeholder="Ersetzen mit">
+          </div>
+
+          <div style="display:flex; gap:10px; margin-bottom:6px;">
+            <input style="flex:1;" type="text"
+              name="replaceFrom3"
+              value=")rawliteral" + replaceFrom3 + R"rawliteral("
+              placeholder="Anzeigename">
+            <input style="flex:1;" type="text"
+              name="replaceTo3"
+              value=")rawliteral" + replaceTo3 + R"rawliteral("
+              placeholder="Ersetzen mit">
+          </div>
+
+          <div style="display:flex; gap:10px; margin-bottom:6px;">
+            <input style="flex:1;" type="text"
+              name="replaceFrom4"
+              value=")rawliteral" + replaceFrom4 + R"rawliteral("
+              placeholder="Anzeigename">
+            <input style="flex:1;" type="text"
+              name="replaceTo4"
+              value=")rawliteral" + replaceTo4 + R"rawliteral("
+              placeholder="Ersetzen mit">
+          </div>
+
+          <br>
           <label>Anzeige Farbe:</label><br>
           <select name="displayColor" id="selDisplayColor">
             <option value="BLACK">Schwarz</option>
@@ -484,9 +627,36 @@ void handleSaveStop() {
   if (server.hasArg("stop")) selectedStopName = server.arg("stop");
   if (server.hasArg("line1")) selectedLine = server.arg("line1");
   if (server.hasArg("line2")) selectedLine2 = server.arg("line2");
+  if (server.hasArg("line3")) selectedLine3 = server.arg("line3");
+  if (server.hasArg("line4")) selectedLine4 = server.arg("line4");
   if (server.hasArg("timeColor")) timeColorName = server.arg("timeColor");
   if (server.hasArg("displayColor")) displayColorName = server.arg("displayColor");
   if (server.hasArg("offset")) offsetMin = server.arg("offset").toInt();
+
+  if (server.hasArg("replaceFrom1")) replaceFrom1 = server.arg("replaceFrom1");
+  if (server.hasArg("replaceTo1")) replaceTo1 = server.arg("replaceTo1");
+  if (server.hasArg("replaceFrom2")) replaceFrom2 = server.arg("replaceFrom2");
+  if (server.hasArg("replaceTo2")) replaceTo2 = server.arg("replaceTo2");
+  if (server.hasArg("replaceFrom3")) replaceFrom3 = server.arg("replaceFrom3");
+  if (server.hasArg("replaceTo3")) replaceTo3 = server.arg("replaceTo3");
+  if (server.hasArg("replaceFrom4")) replaceFrom4 = server.arg("replaceFrom4");
+  if (server.hasArg("replaceTo4")) replaceTo4 = server.arg("replaceTo4");
+
+  // extras
+  ads = (selectedLine == "!WERBUNG" );
+  if (ads) {
+    adsInterval = selectedLine2.toInt();
+    selectedLine = "";
+    selectedLine2 = "";
+
+  } 
+  Serial.println("selectedLine:" + selectedLine);
+  discoMode = (selectedLine3 == "!DISCO");
+  if (discoMode) {
+    discoTime = selectedLine4.toInt();
+    selectedLine3 = "";
+    selectedLine4 = "";
+  }
   
   // Wichtig: Bei Checkboxen ist der Key nur im Request, wenn sie angehakt sind!
   showLine = server.hasArg("showLine");

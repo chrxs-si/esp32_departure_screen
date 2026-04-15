@@ -8,6 +8,8 @@
 #include "wifi_setup.h"
 #include "weather_data.h"
 #include "clock.h"
+#include "extras.h"
+#include "updater.h"
 
 //Wlan & Config-Website --> Find stop id: https://v6.bvg.transport.rest/stops?query=Leibnizstr./B
 // API for departures: https://v6.vbb.transport.rest/stops/900024208/departures
@@ -63,6 +65,8 @@ void updateSystemTime() {
 }
 
 void Intro() {
+    return;
+
     display->clearScreen();
     drawStaticText("HALLO!", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
 
@@ -88,6 +92,9 @@ void setup() {
   
   // Startet den gesamten Konfigurations- und Verbindungsablauf
   Config();
+
+  // Sobald die Verbindung steht, wird die Version geprüft und ggf. ein Update durchgeführt
+  updateSystem();
 
   Serial.println("setup fertig.");
 }
@@ -120,6 +127,8 @@ int lastUpdate = millis();
 int departureSecondsCounter = 999999;
 int weatherSecondsCounter = 999999;
 int SystemTimeSecondsCounter = 999999;
+//extras
+int adsTimer = 999999;
 
 void loop() {
 
@@ -134,10 +143,25 @@ void loop() {
     departureSecondsCounter += 1;
     weatherSecondsCounter += 1;
     SystemTimeSecondsCounter += 1;
+    if (ads) adsTimer += 1;
 
     if (showWeatherTime) {
       drawTime();
     }
+  }
+
+  // extras
+  if (ads && adsTimer > adsInterval) {
+    adsTimer = 0;
+    departureSecondsCounter = 999999;
+    weatherSecondsCounter = 999999;
+    runAd();
+  }
+
+  if (discoMode) {
+    adsTimer += discoTime;
+    runDisco(discoTime * 1000);
+    return;
   }
 
   if (departureSecondsCounter >= 6) { // alle 6 Sekunden
