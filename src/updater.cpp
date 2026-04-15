@@ -27,7 +27,8 @@ String checkForSoftwareUpdates() {
     if (WiFi.status() != WL_CONNECTED) return "";
 
     display->clearScreen();
-    drawStaticText("Suche nach Updates...", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Suche nach", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Updates...", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
     delay(400);
 
     WiFiClientSecure client;
@@ -67,7 +68,8 @@ String checkForSoftwareUpdates() {
 
             if (newVersion != "" && newVersion != CURRENT_VERSION) {
                 display->clearScreen();
-                drawStaticText("Update verfügbar", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
+                drawStaticText("Update", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, WHITE, 1);
+                drawStaticText("verfügbar", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
                 delay(400);
 
                 Serial.printf("[OTA] Neue Version verfügbar: %s (Aktuell: %s)\n", newVersion.c_str(), CURRENT_VERSION.c_str());
@@ -103,7 +105,8 @@ String updateSoftware() {
     if (latestAssetId == "") return "Keine Download-ID gefunden.";
 
     display->clearScreen();
-    drawStaticText("downloade Update...", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("downloade", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Update...", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
     delay(400);
 
     WiFiClientSecure client;
@@ -151,7 +154,8 @@ String updateSoftware() {
 
     Serial.println("[OTA] Schreibe Flash...");
     display->clearScreen();
-    drawStaticText("installiere Update...", 0, PANEL_RES_X * PANEL_CHAIN, CENTER, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("installiere", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, WHITE, 1);
+    drawStaticText("Update...", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, WHITE, 1);
     delay(400);
 
     WiFiClient* stream = http.getStreamPtr();
