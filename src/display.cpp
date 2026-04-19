@@ -23,6 +23,7 @@ uint16_t LIGHTBLUE;
 MatrixPanel_I2S_DMA *display = nullptr;
 
 void initDisplay() {
+  /*
   // RGB Pins
   #define R1_PIN 25
   #define G1_PIN 26
@@ -41,6 +42,26 @@ void initDisplay() {
   #define LAT_PIN 4
   #define OE_PIN 15
   #define CLK_PIN 16
+  */
+
+  #define R1_PIN 25
+  #define G1_PIN 26
+  #define B1_PIN 27
+  #define R2_PIN 14
+  #define G2_PIN 13  // Verschoben von 12 (Strapping Pin)
+  #define B2_PIN 32  // Neuer sicherer Pin
+
+  // Adressleitungen
+  #define A_PIN 23
+  #define B_PIN 19
+  #define C_PIN 22  // Verschoben von 5 (Strapping Pin)
+  #define D_PIN 21
+  #define E_PIN -1  // Nur bei 1/32 Panels nötig
+
+  // Steuerpins
+  #define LAT_PIN 4
+  #define OE_PIN  33  // Verschoben von 15 (Strapping Pin)
+  #define CLK_PIN 18  // Sicherer Takt-Pin
 
   // Pinstruktur der Library
   HUB75_I2S_CFG::i2s_pins pins = {
