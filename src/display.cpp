@@ -42,7 +42,6 @@ void initDisplay() {
   #define LAT_PIN 4
   #define OE_PIN 15
   #define CLK_PIN 16
-  */
 
   #define R1_PIN 25
   #define G1_PIN 26
@@ -62,6 +61,34 @@ void initDisplay() {
   #define LAT_PIN 4
   #define OE_PIN  33  // Verschoben von 15 (Strapping Pin)
   #define CLK_PIN 18  // Sicherer Takt-Pin
+
+  */
+  // --- High-Speed Datenleitungen (Saubere Pins) ---
+  // 4er Kabel: R1, G1, B1, R2
+  #define R1_PIN 25
+  #define B1_PIN 26
+  #define R2_PIN 27
+  #define B2_PIN 14
+
+  // Einzelne Kabel: G1, G2
+  #define G1_PIN 21
+  #define G2_PIN 13
+
+  // --- Langsame Adress- und Steuerleitungen ---
+  // 2er Kabel: A, D
+  #define A_PIN 32
+  #define C_PIN 33
+
+  // 4er Kabel: B, D, LAT, GND
+  #define B_PIN 5
+  #define D_PIN 18
+  #define LAT_PIN 19 // eigentlich auch ein Kotroll-Pin, aber hier mit 4er Kabel angebunden
+  #define E_PIN -1
+
+  // --- Kontroll-Pins ---
+  // 2er Kabel: OE, CLK
+  #define CLK_PIN 22
+  #define OE_PIN 23
 
   // Pinstruktur der Library
   HUB75_I2S_CFG::i2s_pins pins = {
