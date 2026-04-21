@@ -13,16 +13,6 @@ String latestVersionLink = ""; // Speicher für den Download-Link des Assets
 String latestAssetId = "";
 String newestVersion = "";
 
-void updateSystem() {
-    newestVersion = checkForSoftwareUpdates();
-    loadSettings(); // Einstellungen neu laden, damit die neue Version korrekt angezeigt wird
-
-    if (newestVersion != current_version) {
-        String result = updateSoftware();
-        Serial.println("[OTA] Update Ergebnis: " + result);
-    }
-}
-
 String checkForSoftwareUpdates() {
     if (WiFi.status() != WL_CONNECTED) return "";
 
@@ -205,4 +195,14 @@ String updateSoftware() {
     ESP.restart(); 
     
     return "Erfolg"; 
+}
+
+void updateSystem() {
+    newestVersion = checkForSoftwareUpdates();
+    loadSettings(); // Einstellungen neu laden, damit die neue Version korrekt angezeigt wird
+
+    if (newestVersion != current_version) {
+        String result = updateSoftware();
+        Serial.println("[OTA] Update Ergebnis: " + result);
+    }
 }
