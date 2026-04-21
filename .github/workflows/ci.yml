@@ -30,20 +30,21 @@ jobs:
           import sys, re
 
           def check_file(filename, check_name, pattern, optional=False):
+              filepath = os.path.join('src', filename)
               try:
-                  with open(filename, 'r', encoding='utf-8') as f:
+                  with open(filepath, 'r', encoding='utf-8') as f:
                       content = f.read()
                       if not re.search(pattern, content, re.MULTILINE | re.DOTALL):
                           if optional:
-                              print(f'⚠️ WARNUNG: {check_name} in {filename} nicht gefunden (optional).')
+                              print(f'⚠️ WARNUNG: {check_name} in {filepath} nicht gefunden (optional).')
                               return
                           else:
-                              print(f'❌ FEHLER: {check_name} in {filename} fehlt!')
+                              print(f'❌ FEHLER: {check_name} in {filepath} fehlt!')
                               print(f'   -> Gesucht wurde nach Regex: {pattern}')
                               sys.exit(1)
                       print(f'✅ {check_name}')
               except FileNotFoundError:
-                  print(f'❌ FEHLER: Datei {filename} wurde nicht gefunden.')
+                  print(f'❌ FEHLER: Datei {filepath} wurde nicht gefunden.')
                   sys.exit(1)
 
           print('\n======================================================')
