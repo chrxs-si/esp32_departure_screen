@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
 
+jobs:
   validate:
     name: Intensive OTA Code-Analyse
     runs-on: ubuntu-latest
