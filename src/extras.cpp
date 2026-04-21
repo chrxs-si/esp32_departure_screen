@@ -59,68 +59,6 @@ void animationBars(int offset)
   }
 }
 
-
-// ==============================
-// TEXT ANZEIGE
-// ==============================
-
-void showWerbungText(const String &top_text, const String &button_text, const int iterations, uint16_t color)
-{
-  display->clearScreen();
-
-  for (int i = 0; i < iterations; i++)
-  {
-    display->clearScreen();
-
-    animationBars(i);
-
-    drawStaticText(
-      top_text,
-      0,
-      PANEL_RES_X * PANEL_CHAIN,
-      CENTER_ABOVE,
-      ALIGN_CENTER,
-      color,
-      1
-    );
-    drawStaticText(
-      button_text,
-      0,
-      PANEL_RES_X * PANEL_CHAIN,
-      CENTER_BELOW,
-      ALIGN_CENTER,
-      color,
-      1
-    );
-
-    delay(40);
-  }
-}
-
-
-// ==============================
-// HAUPT WERBUNG
-// ==============================
-
-void runAd()
-{
-  // 1. Formen Animation
-  animationShapes(4000);
-
-  // 2. WERBUNG
-  showWerbungText("kurze Unterbrechung", "- WERBUNG -", 100, RED);
-
-  // 3. Frage
-  showWerbungText("Du moechtest auch", "so ein Display?", 120, WHITE);
-
-  // 4. QR Hinweis
-  showWerbungText("Scanne den", "QR Code!", 120, WHITE);
-
-  display->clearScreen();
-}
-
-
-
 // ------------------------------------------------
 // Hilfsfunktion Zufallsfarbe
 // ------------------------------------------------

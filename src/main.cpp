@@ -134,8 +134,6 @@ int lastUpdate = millis();
 int departureSecondsCounter = 999999;
 int weatherSecondsCounter = 999999;
 int SystemTimeSecondsCounter = 999999;
-//extras
-int adsTimer = 999999;
 
 void loop() {
 
@@ -172,7 +170,6 @@ void loop() {
     departureSecondsCounter += 1;
     weatherSecondsCounter += 1;
     SystemTimeSecondsCounter += 1;
-    if (ads) adsTimer += 1;
 
     if (showWeatherTime) {
       drawTime();
@@ -180,15 +177,7 @@ void loop() {
   }
 
   // extras
-  if (ads && adsTimer > adsInterval) {
-    adsTimer = 0;
-    departureSecondsCounter = 999999;
-    weatherSecondsCounter = 999999;
-    runAd();
-  }
-
   if (discoMode) {
-    adsTimer += discoTime;
     runDisco(discoTime * 1000);
     return;
   }

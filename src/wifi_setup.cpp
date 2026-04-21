@@ -58,8 +58,6 @@ String replaceTo4   = "";
 String wifiOptionsHTML = "";
 
 //extern
-bool ads = false;
-int adsInterval = 60;
 bool discoMode = false;
 int discoTime = 30;
 
@@ -643,13 +641,6 @@ void handleSaveStop() {
   if (server.hasArg("replaceTo4")) replaceTo4 = server.arg("replaceTo4");
 
   // extras
-  ads = (selectedLine == "!WERBUNG" );
-  if (ads) {
-    adsInterval = selectedLine2.toInt();
-    selectedLine = "";
-    selectedLine2 = "";
-
-  } 
   Serial.println("selectedLine:" + selectedLine);
   discoMode = (selectedLine3 == "!DISCO");
   if (discoMode) {
