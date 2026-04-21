@@ -160,7 +160,7 @@ void loop() {
 
   if (hour == 4 && minute == 0 && !ranUpdateToday) {
     ranUpdateToday = true;
-    //updateSystem();
+    updateSystem();
   }
 
   unsigned long nowT = millis();
