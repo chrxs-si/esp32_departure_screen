@@ -12,8 +12,4 @@ const String GITHUB_TOKEN    = "github_pat_11AQJVVIY0k3zYKXPb80zj_y74aHvmVr7w9x7
 
 void updateSystem();
 
-String checkForSoftwareUpdates();
-
-String updateSoftware();
-
 #endif

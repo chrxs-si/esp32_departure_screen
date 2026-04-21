@@ -117,7 +117,11 @@ void finishSetup() {
   Serial.println("WiFi connected.");
 
   // Sobald die Verbindung steht, wird die Version geprüft und ggf. ein Update durchgeführt
-  updateSystem();
+  if (ranUpdateToday) {
+    ranUpdateToday = true;
+    updateSystem();
+  }
+
 
   display->clearScreen();
 
