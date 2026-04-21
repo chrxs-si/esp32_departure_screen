@@ -27,7 +27,7 @@ jobs:
       - name: Führe strikte statische OTA-Prüfungen durch
         run: |
           python -c "
-          import sys, re
+          import sys, re, os
 
           def check_file(filename, check_name, pattern, optional=False):
               filepath = os.path.join('src', filename)
