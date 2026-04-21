@@ -1,6 +1,6 @@
 # 🚍 ESP32 Live-Abfahrtsmonitor für Berlin
 
-Du möchtest nie wieder den Bus oder die Bahn verpassen? Baue dir mit diesem Code dein eigenes Abfahrtdisplay, welche Live_Daten des VBB und der BVG direkt bei dir zu Hause anzeigt!
+Du möchtest nie wieder den Bus oder die Bahn verpassen? Baue dir mit diesem Code dein eigenes Abfahrtdisplay, welche Live Daten des VBB und der BVG direkt bei dir zu Hause anzeigt!
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/chrxs-si/esp32_departure_screen)
 ![Platform](https://img.shields.io/badge/platform-ESP32-orange)
@@ -9,17 +9,19 @@ Du möchtest nie wieder den Bus oder die Bahn verpassen? Baue dir mit diesem Cod
 ---
 
 ## 💡 Die Idee
-Ich habe das Glück, direkt vor meine Wohnung, eine Bus Haltestelle zu haben. Und trotz 30 Sekunden Geh-Zeit zur Haltestelle, verpassen meine Mitbewohner regelmäßig den Bus (Und ich auch). Das woltle ich ändern, indem ein Display, live anzeigt wann (und ob) der Bus kommt.
-Hier stelle ich den Code zur verfügung um die Anzeige leicht nachbauen lassen zu können. Alternativ möchte ich die Displays auf Etsy verkaufen, was wahrscheinlich komfortabler ist als sich mit einem ESP32 rumzuschlagen: https://departureboard.etsy.com
+Ich habe das Glück, direkt vor meine Wohnung, eine Bus Haltestelle zu haben. Und trotz 30 Sekunden Geh-Zeit zur Haltestelle, verpassen meine Mitbewohner:innen regelmäßig den Bus (Und ich auch). Das wollte ich ändern, indem ein Display, live anzeigt wann (und ob) der Bus kommt.
+Hier stelle ich den Code zur verfügung um die Anzeige leicht nachbauen zu können. Alternativ möchte ich die Displays auf Etsy verkaufen, was wahrscheinlich komfortabler ist als sich mit einem ESP32 rumzuschlagen: https://departureboard.etsy.com
+
 Das Beste daran: Dank des integrierten Web-Setups muss keine einzige Zeile Code geändert werden, um eine Haltestelle und andere Eintellungen zu konfigurieren. Läuft alles super einfach über ein Handy oder Laptop!
 
 ## ✨ Features
-* **Echtzeit-Daten:** Direkte Anbindung an die VBB/BVG-Schnittstellen.
-* **Verspätungs-Check:** Zeigt nicht nur den Fahrplan, sondern berechnet die tatsächliche Abfahrtszeit inklusive Verspätung!
-* **Intelligentes Filtern:** Du willst nur die U-Bahn sehen, aber nicht den Bus? Du kannst expliziet nach bestimmten Linien filtern.
-* **Automatisches Web-Setup:** Beim Start spannt der ESP32 ein eigenes WLAN auf. Über eine komfortable Weboberfläche wählst du dein WLAN, deine Haltestelle und deine Wunschfarben aus. Die Konfigurationen lassen sich auch später jederzeit ändern.
-* **Multitalent:** Neben Abfahrten bietet das Display (optional) Wetterinfos, Temperaturanzeige und eine Uht Anzeige.
-* **Day/Night Dimming:** Die Helligkeit passt sich automatisch an (tagsüber hell, nachts dezent), damit dein Wohnzimmer nicht zur Landebahn wird.
+
+* 📡 **Echtzeit-Daten:** Direkte Anbindung an die VBB/BVG-Schnittstellen (`v6.transport.rest`).
+* ⏱️ **Verspätungs-Check:** Zeigt nicht nur den Fahrplan, sondern berechnet die tatsächliche Abfahrtszeit inklusive Verspätung!
+* 🔍 **Intelligentes Filtern:** Du willst nur die U-Bahn sehen, aber nicht den Bus? Du kannst explizit nach bis zu vier bestimmten Linien filtern.
+* 🌐 **Automatisches Web-Setup:** Beim Start spannt der ESP32 ein eigenes WLAN auf. Über eine komfortable Weboberfläche wählst du dein WLAN, deine Haltestelle und deine Wunschfarben aus. Die Konfigurationen lassen sich auch später jederzeit über das Web-Interface ändern.
+* 🌤️ **Wetter und Uhrzeit:**  Neben Abfahrten bietet das Display (optional) Wetterinfos, eine farbige Temperaturanzeige und eine synchronisierte Uhrzeit.
+* 🌙 **Day/Night Dimming:** Die Helligkeit passt sich automatisch an (tagsüber hell, nachts dezent), damit dein Wohnzimmer nicht zur Landebahn wird.
 
 ## 🛠 Hardware
 Für dieses Projekt habe ich folgende Komponenten genutzt:
