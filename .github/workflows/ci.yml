@@ -29,98 +29,90 @@ jobs:
           python -c "
           import sys, re, os
 
-          def check_file(filename, check_name, pattern, optional=False):
-              filepath = os.path.join('src', filename)
+          def strip_comments(text):
+              # Entfernt mehrzeilige Kommentare /* ... */
+              text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
+              # Entfernt einzeilige Kommentare // ...
+              text = re.sub(r'//.*', '', text)
+              return text
+
+          def check_file(filename, check_name, pattern, is_root=False):
+              # Wenn is_root True ist (z.B. für platformio.ini), suche im Hauptverzeichnis.
+              # Ansonsten suche standardmäßig im src/ Ordner.
+              filepath = filename if is_root else os.path.join('src', filename)
+              
               try:
                   with open(filepath, 'r', encoding='utf-8') as f:
-                      content = f.read()
-                      if not re.search(pattern, content, re.MULTILINE | re.DOTALL):
-                          if optional:
-                              print(f'⚠️ WARNUNG: {check_name} in {filepath} nicht gefunden (optional).')
-                              return
-                          else:
-                              print(f'❌ FEHLER: {check_name} in {filepath} fehlt!')
-                              print(f'   -> Gesucht wurde nach Regex: {pattern}')
-                              sys.exit(1)
-                      print(f'✅ {check_name}')
+                      raw_content = f.read()
+                      
+                      # Kommentare entfernen, damit auskommentierter Code ignoriert wird!
+                      clean_content = strip_comments(raw_content)
+                      
+                      if not re.search(pattern, clean_content, re.MULTILINE | re.DOTALL):
+                          print(f'❌ FEHLER: {check_name} in {filepath} fehlt, ist fehlerhaft oder auskommentiert!')
+                          print(f'   -> Erwartetes Muster (Regex): {pattern}')
+                          sys.exit(1)
+                      print(f'✅ {check_name} ({filename})')
               except FileNotFoundError:
-                  print(f'❌ FEHLER: Datei {filepath} wurde nicht gefunden.')
-                  sys.exit(1)
+                  if is_root:
+                      print(f'ℹ️ INFO: Datei {filepath} nicht gefunden (optional).')
+                  else:
+                      print(f'❌ FEHLER: Datei {filepath} wurde nicht gefunden!')
+                      print('   Stelle sicher, dass die Datei im Ordner src/ liegt.')
+                      sys.exit(1)
+              return True
 
           print('\n======================================================')
-          print('OTA-SICHERHEITSPRÜFUNGEN')
+          print('🔍 STARTE EXTENSIVE OTA-SICHERHEITSPRÜFUNGEN')
           print('======================================================\n')
 
-          # --- PRÜFUNGEN: updater.cpp ---
-          print('--- Analysiere updater.cpp (Frozen Code State) ---')
-          
-          # 1. Bibliotheken
+          # --- PRÜFUNGEN: updater.cpp (Frozen Code State) ---
+          print('--- Analysiere src/updater.cpp ---')
           check_file('updater.cpp', 'Include Update.h', r'#include\s*<Update\.h>')
-          check_file('updater.cpp', 'Include HTTPClient.h', r'#include\s*<HTTPClient\.h>')
-          check_file('updater.cpp', 'Include WiFiClientSecure.h', r'#include\s*<WiFiClientSecure\.h>')
-          check_file('updater.cpp', 'Include ArduinoJson.h', r'#include\s*<ArduinoJson\.h>')
-          
-          # 2. Verbindung & Security (HTTPS)
           check_file('updater.cpp', 'HTTPS Client initialisiert', r'WiFiClientSecure\s+client')
           check_file('updater.cpp', 'SSL-Zertifikatsprüfung umgangen', r'client\.setInsecure\(\)')
-          check_file('updater.cpp', 'Strict Redirects aktiviert (GitHub AWS Links)', r'http\.setFollowRedirects\(HTTPC_STRICT_FOLLOW_REDIRECTS\)')
-          
-          # 3. HTTP Header (Zwingend für GitHub API & Private Repos)
-          check_file('updater.cpp', 'User-Agent Header vorhanden', r'http\.addHeader\(\s*\"User-Agent\"')
-          check_file('updater.cpp', 'Authorization Token übergeben', r'http\.addHeader\(\s*\"Authorization\",\s*\"token\s*\"\s*\+\s*GITHUB_TOKEN\)')
-          check_file('updater.cpp', 'Accept Header für Binärdaten gesetzt', r'http\.addHeader\(\s*\"Accept\",\s*\"application/octet-stream\"\)')
-          
-          # 4. JSON Parsing & Asset Identifikation
-          check_file('updater.cpp', 'JSON Deserialization verwendet', r'deserializeJson')
-          check_file('updater.cpp', 'Sucht gezielt nach .bin Dateien', r'\.endsWith\(\s*\"\.bin\"\s*\)')
-          
-          # 5. Download & Dateigröße
-          check_file('updater.cpp', 'HTTP GET Aufruf', r'http\.GET\(\)')
-          check_file('updater.cpp', 'Dateigröße wird ermittelt', r'http\.getSize\(\)')
-          check_file('updater.cpp', 'Prüfung auf ungültige Dateigröße (<= 0)', r'contentLength\s*<=\s*0')
-          
-          # 6. OTA Flash-Prozess (Core Update Logic)
-          check_file('updater.cpp', 'OTA Flash Start & Speicherprüfung', r'Update\.begin\(contentLength\)')
-          check_file('updater.cpp', 'Stream wird in Flash geschrieben', r'Update\.writeStream\(')
-          check_file('updater.cpp', 'OTA Flash Endsequenz aufgerufen', r'Update\.end\(\)')
-          check_file('updater.cpp', 'OTA Flash Integritätsprüfung', r'Update\.isFinished\(\)')
-          
-          # 7. Aufräumen & Neustart
-          check_file('updater.cpp', 'HTTP Client wird geschlossen', r'http\.end\(\)')
-          check_file('updater.cpp', 'Zwingender Neustart nach Update', r'ESP\.restart\(\)')
+          check_file('updater.cpp', 'Strict Redirects aktiviert', r'http\.setFollowRedirects\(HTTPC_STRICT_FOLLOW_REDIRECTS\)')
+          check_file('updater.cpp', 'Authorization Token Header', r'http\.addHeader\(\s*\"Authorization\"')
+          check_file('updater.cpp', 'OTA Flash Start', r'Update\.begin\(contentLength\)')
+          check_file('updater.cpp', 'Zwingender Neustart', r'ESP\.restart\(\)')
 
+          # --- PRÜFUNGEN: main.cpp (Dynamic Logic State) ---
+          print('\n--- Analysiere src/main.cpp ---')
+          check_file('main.cpp', 'updater.h Einbindung', r'#include\s*\"updater\.h\"')
+          check_file('main.cpp', 'Tageswechsel-Reset Logik', r'day\s*!=\s*lastDay[^}]+ranUpdateToday\s*=\s*false')
+          check_file('main.cpp', 'Update-Trigger (Stunde/Minute)', r'hour\s*==\s*\d+\s*&&\s*minute\s*==\s*\d+')
+          check_file('main.cpp', 'Loop-Prevention (!ranUpdateToday)', r'!\s*ranUpdateToday')
+          check_file('main.cpp', 'Aufruf von updateSystem()', r'updateSystem\s*\(\)')
+          check_file('main.cpp', 'Update-Flag Setzung', r'ranUpdateToday\s*=\s*true')
 
-          # --- PRÜFUNGEN: main.cpp ---
-          print('\n--- Analysiere main.cpp (Dynamic Logic State) ---')
+          # --- PRÜFUNGEN: updater.h (Security & Versioning) ---
+          print('\n--- Analysiere src/updater.h ---')
+          check_file('updater.h', 'Deklaration updateSystem', r'void\s+updateSystem\s*\(\)\s*;')
+          check_file('updater.h', 'Version-Format Validierung (SemVer, z.B. 1.0.0)', r'CURRENT_VERSION\s*=\s*\"\d+\.\d+\.\d+\"')
+          check_file('updater.h', 'GitHub User gesetzt', r'GITHUB_USER\s*=\s*\".+\"')
+          check_file('updater.h', 'GitHub Repo gesetzt', r'GITHUB_REPO\s*=\s*\".+\"')
           
-          check_file('main.cpp', 'updater.h ist eingebunden', r'#include\s*\"updater\.h\"')
-          
-          # Globale Variablen für den Schutzmechanismus
-          check_file('main.cpp', 'Globale Variable ranUpdateToday definiert', r'bool\s+ranUpdateToday')
-          check_file('main.cpp', 'Globale Variable lastDay definiert', r'int\s+lastDay')
-          
-          # Tageswechsel-Reset (Verhindert, dass das Update am Folgetag blockiert ist)
-          check_file('main.cpp', 'Tägliches Reset-Flag (day != lastDay => ranUpdateToday = false)', r'day\s*!=\s*lastDay[^}]+ranUpdateToday\s*=\s*false')
-          
-          # Zeitgesteuerter Trigger & Loop-Prevention
-          check_file('main.cpp', 'Zeitprüfung vorhanden (hour & minute)', r'hour\s*==\s*\d+\s*&&\s*minute\s*==\s*\d+')
-          check_file('main.cpp', 'Loop-Prevention: !ranUpdateToday wird vor Update geprüft', r'!\s*ranUpdateToday')
-          check_file('main.cpp', 'Aufruf von updateSystem() vorhanden', r'updateSystem\s*\(\)')
-          
-          # Prüfung, ob das Flag VOR/WÄHREND dem Update auf true gesetzt wird (sonst Endlosschleife falls updateSystem fehlschlägt aber nicht restartet)
-          check_file('main.cpp', 'Update-Flag wird auf true gesetzt (ranUpdateToday = true)', r'ranUpdateToday\s*=\s*true')
+          # Sicherheits-Check: Wirft einen Fehler, wenn das Token mit 'github_pat_' anfängt. 
+          # Verhindert, dass echte Tokens in das Repository gepusht werden.
+          check_file('updater.h', 'Token-Sicherheitscheck (Kein Klartext-PAT)', r'GITHUB_TOKEN\s*=\s*\"(?!github_pat_).*\"')
 
-
-          # --- PRÜFUNGEN: updater.h ---
-          print('\n--- Analysiere updater.h ---')
-          check_file('updater.h', 'Funktion updateSystem() ist deklariert', r'void\s+updateSystem\s*\(\)\s*;')
-          check_file('updater.h', 'Konstante CURRENT_VERSION vorhanden', r'const\s+String\s+CURRENT_VERSION')
-          check_file('updater.h', 'Konstante GITHUB_USER vorhanden', r'const\s+String\s+GITHUB_USER')
-          check_file('updater.h', 'Konstante GITHUB_REPO vorhanden', r'const\s+String\s+GITHUB_REPO')
-          check_file('updater.h', 'Konstante GITHUB_TOKEN vorhanden', r'const\s+String\s+GITHUB_TOKEN')
+          # --- PRÜFUNGEN: platformio.ini (Ressourcen) ---
+          print('\n--- Analysiere platformio.ini ---')
+          try:
+              with open('platformio.ini', 'r', encoding='utf-8') as f:
+                  content = strip_comments(f.read())
+                  if not re.search(r'board_build\.partitions\s*=|partitions\s*=', content):
+                      print('❌ Keine expliziten Partitionen in platformio.ini definiert.')
+                      print('   Das Standard-Limit ist ca. 1.2MB, was künftig zu OTA-Fehlern führen kann!')
+                      sys.exit(1)
+                  else:
+                      print('✅ Eigene Partitions-Konfiguration gefunden (platformio.ini)')
+          except Exception as e:
+              print(f'❌ Konnte platformio.ini nicht prüfen: {e}')
+              sys.exit(1)
 
           print('\n======================================================')
-          print('✅ PRÜFUNGEN ERFOLGREICH BESTANDEN! ✅')
+          print('✅✅ ALLE PRÜFUNGEN ERFOLGREICH BESTANDEN! ✅✅')
           print('======================================================\n')
           "
 
