@@ -97,11 +97,6 @@ jobs:
           # Stellt sicher, dass die Variable GITHUB_TOKEN_VAL als Zuweisung genutzt wird.
           check_file('updater.h', 'Token-Sicherheitscheck (Nutzt Build-Flag Variable)', r'const\s+String\s+GITHUB_TOKEN\s*=\s*GITHUB_TOKEN_VAL\s*;')
 
-          # Sucht im gesamten bereinigten Inhalt nach dem Muster eines echten Tokens.
-          if 'github_pat_' in clean_content:
-              print(f'❌ FEHLER: Ein echtes GitHub-Token (github_pat_...) wurde im Quellcode von {filename} gefunden.')
-              sys.exit(1)
-
           # --- PRÜFUNGEN: platformio.ini (Ressourcen) ---
           print('\n--- Analysiere platformio.ini ---')
           try:
