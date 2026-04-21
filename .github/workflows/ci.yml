@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 
-validate:
+  validate:
     name: Intensive OTA Code-Analyse
     runs-on: ubuntu-latest
     
