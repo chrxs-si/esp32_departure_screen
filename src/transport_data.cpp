@@ -159,8 +159,8 @@ void updateDepartures() {
     if (!showWeatherTime) {
       drawStaticText("", 0, PANEL_RES_X * PANEL_CHAIN, ROW_1, ALIGN_CENTER, BLACK, 1);
     }
-    drawStaticText("Keine", 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
-    drawStaticText("Abfahrten", 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText(noDeparturesTextLine1, 0, PANEL_RES_X * PANEL_CHAIN, ROW_2, ALIGN_CENTER, DEPARTURE_COLOR, 1);
+    drawStaticText(noDeparturesTextLine2, 0, PANEL_RES_X * PANEL_CHAIN, ROW_3, ALIGN_CENTER, DEPARTURE_COLOR, 1);
     drawStaticText("", 0, PANEL_RES_X * PANEL_CHAIN, ROW_4, ALIGN_CENTER, BLACK, 1);
     return;
   }
