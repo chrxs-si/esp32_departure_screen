@@ -39,9 +39,9 @@ void updateTemprature(int temp) {
 
 void updateBrightness(bool is_day) {
    if (is_day) {
-    display->setBrightness8(100);
+    display->setBrightness8(brightnessDay);
   } else {
-    display->setBrightness8(60);
+    display->setBrightness8(brightnessNight);
   }
 }
 

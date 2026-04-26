@@ -42,6 +42,12 @@ extern String replaceTo3;
 extern String replaceFrom4;
 extern String replaceTo4;
 
+extern int brightnessDay;
+extern int brightnessNight;
+
+extern String noDeparturesTextLine1;
+extern String noDeparturesTextLine2;
+
 // exras
 extern bool ads;
 extern int adsInterval;

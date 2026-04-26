@@ -55,6 +55,12 @@ String replaceTo3   = "";
 String replaceFrom4 = "";
 String replaceTo4   = "";
 
+int brightnessDay = 80;
+int brightnessNight = 50;
+
+String noDeparturesTextLine1 = "Keine";
+String noDeparturesTextLine2 = "Abfahrten";
+
 String wifiOptionsHTML = "";
 
 //extern
@@ -90,7 +96,7 @@ bool loadSettings() {
   showLine = prefs.getBool("showLine", false);
   showWeatherTime = prefs.getBool("weather", true);
 
-  offsetMin = prefs.putUInt("offsetMin", 0);
+  offsetMin = prefs.getInt("offsetMin", 0);
 
   displayColorName = prefs.getString("displayColorName", "ORANGE");
   timeColorName = prefs.getString("timeColorName", "BLUE");
@@ -103,6 +109,12 @@ bool loadSettings() {
   replaceTo3 = prefs.getString("replaceTo3", "");
   replaceFrom4 = prefs.getString("replaceFrom4", "");
   replaceTo4 = prefs.getString("replaceTo4", "");
+
+  brightnessDay = prefs.getUInt("brightnessDay", 80);
+  brightnessNight = prefs.getUInt("brightnessNight", 50);
+
+  noDeparturesTextLine1 = prefs.getString("noDeparturesTextLine1", "Keine");
+  noDeparturesTextLine2 = prefs.getString("noDeparturesTextLine2", "Abfahrten");
 
   latitudeStop = prefs.getFloat("lat", 52.498882);
   longitudeStop = prefs.getFloat("lon", 13.371630);
@@ -146,6 +158,14 @@ bool loadSettings() {
   Serial.println("Replace 2: " + replaceFrom2 + " -> " + replaceTo2);
   Serial.println("Replace 3: " + replaceFrom3 + " -> " + replaceTo3);
   Serial.println("Replace 4: " + replaceFrom4 + " -> " + replaceTo4);
+
+  Serial.println("\n--- Helligkeit ---");
+  Serial.println("Helligkeit Tag: " + String(brightnessDay));
+  Serial.println("Helligkeit Nacht: " + String(brightnessNight));
+
+  Serial.println("\n--- Kein Abfahrten Text ---");
+  Serial.println("Zeile 1: " + noDeparturesTextLine1);
+  Serial.println("Zeile 2: " + noDeparturesTextLine2);
 
   Serial.println("\n--- Haltestellen Koordinaten ---");
   Serial.println("Latitude: " + String(latitudeStop));
@@ -194,6 +214,12 @@ void saveSettings() {
   prefs.putString("replaceTo3", replaceTo3);
   prefs.putString("replaceFrom4", replaceFrom4);
   prefs.putString("replaceTo4", replaceTo4);
+
+  prefs.putUInt("brightnessDay", brightnessDay);
+  prefs.putUInt("brightnessNight", brightnessNight);
+
+  prefs.putString("noDeparturesTextLine1", noDeparturesTextLine1);
+  prefs.putString("noDeparturesTextLine2", noDeparturesTextLine2);
 
   prefs.putFloat("lat", latitudeStop);
   prefs.putFloat("lon", longitudeStop);
@@ -520,6 +546,19 @@ void handleStopConfig() {
             <option value="DARKGREEN">Dunkelgrün</option>
             <option value="LIGHTBLUE">Hellblau</option>
           </select><br><br>
+
+          <label>Screenhelligkeit am Tag:</label><br>
+          <input type="number" name="brightnessDay" min="0" max="100" value=")rawliteral" + String(brightnessDay) + R"rawliteral("><br><br>
+
+          <label>Screenhelligkeit in der Nacht:</label><br>
+          <input type="number" name="brightnessNight" min="0" max="100" value=")rawliteral" + String(brightnessNight) + R"rawliteral("><br><br>
+
+          <label>Text, wenn keine Abfahrten vorhanden sind (Zeile 2):</label><br>
+          <input type="text" name="noDeparturesTextLine1" value=")rawliteral" + noDeparturesTextLine1 + R"rawliteral("><br><br>
+
+          <label>Text, wenn keine Abfahrten vorhanden sind (Zeile 3):</label><br>
+          <input type="text" name="noDeparturesTextLine2" value=")rawliteral" + noDeparturesTextLine2 + R"rawliteral("><br><br>
+
         </details>
 
         <input type="submit" value="Speichern">
@@ -639,6 +678,12 @@ void handleSaveStop() {
   if (server.hasArg("replaceTo3")) replaceTo3 = server.arg("replaceTo3");
   if (server.hasArg("replaceFrom4")) replaceFrom4 = server.arg("replaceFrom4");
   if (server.hasArg("replaceTo4")) replaceTo4 = server.arg("replaceTo4");
+
+  if (server.hasArg("brightnessDay")) brightnessDay = server.arg("brightnessDay").toInt();
+  if (server.hasArg("brightnessNight")) brightnessNight = server.arg("brightnessNight").toInt();
+
+  if (server.hasArg("noDeparturesTextLine1")) noDeparturesTextLine1 = server.arg("noDeparturesTextLine1");
+  if (server.hasArg("noDeparturesTextLine2")) noDeparturesTextLine2 = server.arg("noDeparturesTextLine2");
 
   // extras
   Serial.println("selectedLine:" + selectedLine);
